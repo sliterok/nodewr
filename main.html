@@ -58,7 +58,6 @@
 	<script src="/jquery-jvectormap-world-mill-ru.js"></script>
 	<script src="/bootstrap/bootstrap.min.js"></script>
 	<script src="/alertify.js"></script>
-	<script src="/fuckadblock.js"></script>
 	<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback" async defer></script>
 	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 	<script>
@@ -70,7 +69,7 @@
 		ga('create', 'UA-78463564-1', 'auto');
 		ga('send', 'pageview');
 	</script>
-	
+
 </head>
 <body>
 	<div class="loadscreen" onclick="$(this).fadeOut();">
@@ -121,59 +120,9 @@
 		}
         return `<img src="/assets/fox.webp" style="height: 3em">`+input;
     });
-	function openAd(caller) {
-		//if(Math.max(document.documentElement.clientWidth, window.innerWidth || 0) < 1196){return;}
-		if(adblock === true){
-			return;
-		}
-		if(Date.now() - localStorage.adTimer > 1000*60*2 || !localStorage.adTimer){
-			if(caller == 'click'){
-				if(document.getElementById('aswift_0')) document.getElementById('aswift_0').contentWindow.location.reload(true);
-			}
-			document.getElementById("topAd").style.height = "90px";
-			document.getElementById("main").style.marginTop = "90px";
-			setTimeout(closeAd, 10000);
-			setTimeout(resize, 510);
-			localStorage.adTimer = Date.now();
-		}
-	}
-
-	function closeAd() {
-		document.getElementById("topAd").style.height = "0";
-		document.getElementById("main").style.marginTop= "0";
-		setTimeout(resize, 510);
-	}
-	function adBlockDetected(){
-		alertify.error('Вы включили блокировщик рекламы. Мне жаль.');
-	}
-	var adblock = true;
-	$(function(e){
-		if(typeof fuckAdBlock !== 'undefined' && fuckAdBlock._var) {
-			fuckAdBlock.onNotDetected(function(e){
-				adblock = false;
-			});
-			fuckAdBlock.onDetected(adBlockDetected);
-		} else {
-			adBlockDetected();
-		}
-		setTimeout(openAd, 2000, 'load');
-	})
 	//If something goes wrong. Probably because of this:
 	window.setInterval(resize, 1000);
 	</script>
-	<div id="topAd" class="sidenav">
-		<!-- /305084756/WorldRoulette1_test -->
-		<center>
-		<ins class="adsbygoogle"
-			 style="display:inline-block;width:728px;height:90px"
-			 data-ad-client="ca-pub-2988487114877284"
-			 data-ad-slot="4024908259"></ins>
-		</center>
-		<script>
-		(adsbygoogle = window.adsbygoogle || []).push({});
-		</script>
-		<a href="javascript:void(0)" class="closebtn" onclick="closeAd()">&times;</a>
-	</div>
 	<div id="main" class="well row" style="margin: 0;">
 		<span class="player-tooltip"></span>
 		<div class="well map col-xl-8">
@@ -307,6 +256,8 @@
 		<h5 class="text-center">Наши друзья</h5>
 		<div class="text-center"><a target="_blank" href="http://parolja.net/">Пароля.нет</a></div>
 		<div class="text-center"><a target="_blank" href="https://my.argotel.ru/aff.php?aff=45">argotel.ru</a></div>
+		<p></p>
+  	<div class="text-center"><h5 class="text-center"><a target="_blank" href="https://github.com/sliterok/nodewr">Github</a></h5></div>
 	</div>
 
 	<div id="mmenu" style="display:none;" class="auth">
