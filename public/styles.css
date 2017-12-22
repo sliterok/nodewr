@@ -1,0 +1,714 @@
+@font-face {
+    font-family: Overwatch;
+    font-style: normal;
+    font-weight: 400;
+    src: url(/fonts/bignoodletoo.woff) format('woff'),url(/fonts/bignoodletoo.ttf) format('truetype'),url(/fonts/bignoodletoo.svg#bignoodletoo/bignoodletoo) format('svg')
+}
+
+.auth {
+	z-index: 6;
+	background-color: rgba(55,58,60,.95);
+	position: fixed;
+	width: 600px;
+	left: 0;
+	right: 0;
+	top: 20%;
+	margin: auto;
+	border: 1px solid #525252;
+    border-radius: 1px;
+	text-align: center;
+	-webkit-tap-highlight-color: rgba(0,0,0,0);
+	-webkit-tap-highlight-color: transparent;
+	overflow: auto;
+    max-height: 70%;
+	/*
+	-webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;*/
+}
+
+.prev {
+	width: 20%;
+	height: 20%;
+	background-color: rgba(55,58,60,.95);
+	position: absolute;
+	top:20;
+	left: 20;
+	border: 1px solid #525252;
+	text-align: center;
+	margin: auto;
+	cursor: pointer;
+}
+
+#reg > input{
+	min-width: 300px;
+}
+
+.regbtn {
+	cursor: pointer;
+	color: aaa;
+	font-family: 'Montserrat', sans-serif;
+}
+.logbtn {
+	cursor: pointer;
+	color: aaa;
+	font-family: 'Montserrat', sans-serif;
+}
+
+input[type=text], input[type=password]{
+	margin-top: 10px;
+	padding: 2px;
+	border: 0px solid #525252;
+	background-color: #222;
+	color: #aaa;
+}
+input::-moz-placeholder{
+	color: rgba(255, 255, 255, 0.18);
+}
+input::-webkit-input-placeholder{
+	color: rgba(255, 255, 255, 0.18);
+}
+input[type=button], button, .btn, input::-webkit-file-upload-button{
+	cursor: pointer;
+	border: 0px solid #525252;
+	background-color: #222;
+	color: #aaa;
+	text-align: center;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+	transition: background .5s;
+    overflow: hidden;
+    position: relative;
+}
+input[type=button]:hover:enabled, button:hover:enabled, .btn:hover:enabled, input::-webkit-file-upload-button:enabled{
+	background-color: #444;
+	cursor: pointer;
+	transition: background .5s;
+}
+input[type=button]:focus, button:focus, .btn:focus, input::-webkit-file-upload-button:focus{
+	outline: none !important;
+	box-shadow: initial;
+}
+input[type=button]:disabled, button:disabled, .btn:disabled, input::-webkit-file-upload-button:disabled{
+	background-color: #444;
+	transition: background .5s;
+}
+/*  Ripple */
+.ripple {
+	pointer-events: none;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    position: absolute;
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+}
+@keyframes ripple {
+    to {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+/*  Ripple */
+
+a{
+    word-wrap: break-word;
+}
+
+#logcaptcha, #regcaptcha{
+	display: inline-block;
+	margin: 20px;
+}
+html{
+    font-size: initial;
+}
+body {
+	/*overflow: hidden;*/
+	background-size: cover;
+	background-position-x: right;
+	margin: 0;
+	font-family: 'Roboto', sans-serif;
+	color: #aaa;
+	font-size: 16px;
+    background-color: #373a3c;
+	overflow-x: hidden;
+}
+body::-webkit-scrollbar{
+    width: 0px;  /* remove scrollbar space */
+    background: transparent;  /* optional: just make scrollbar invisible */
+}
+::selection{
+    background: #c66b6f;
+}
+::-moz-selection{
+    background: #c66b6f;
+}
+.well {
+	background-color: #373a3c;
+    /*background-color: rgba(22, 22, 22, 0.5);*/
+}
+
+.well .chatwindow {
+	background-color: #2c2f30;
+	height: 100%;
+    padding-bottom: 0px;
+    padding-top: 5px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    margin: 0px;
+}
+
+a {
+    color: #c7c7c7;
+    text-decoration: none;
+}
+a:hover, a:focus {
+    color: #005580;
+    text-decoration: underline;
+}
+h3{
+    text-align: center;
+    margin: 0px;
+}
+.map{
+	padding: 0;
+}
+#mapshadow{
+	pointer-events: none;
+	width: 100%;
+	display: block;
+	position: absolute;
+	z-index: 5;
+	box-shadow:inset 0px 0px 4px 3px #373a3c;
+}
+.well.map{
+	padding: 0;
+	background: linear-gradient(180deg, #246655, #333);
+	background-size: 400% 400%;
+	position: relative;
+
+	-webkit-animation: AnimationName 5s ease infinite;
+	-moz-animation: AnimationName 5s ease infinite;
+	-o-animation: AnimationName 5s ease infinite;
+	animation: AnimationName 5s ease infinite;
+}
+.chatname:hover{
+    text-decoration: underline;
+}
+.chatname{
+	cursor: pointer;
+    overflow: auto;
+}
+.mapeasy{
+	/*height: 100vh;
+	width: 70vw;
+	float: left;*/
+	padding: 0;
+	background: repeating-linear-gradient(-45deg,#222,#222 5px,rgba(16, 16, 16, 0.5) 5px,rgba(16, 16, 16, 0.5) 10px);
+	position: relative;
+	background-color: #222;
+}
+.mapdib{
+	padding: 3px;
+	pointer-events: none;
+	background-color: rgba(22, 22, 22, 0.5);
+	position: absolute;
+    z-index: 1;
+}
+.mapdib.date{
+	bottom: 0;
+}
+.sup {
+	position: relative;
+	bottom: 1ex;
+	font-size: 80%;
+}
+@-webkit-keyframes AnimationName {
+    0%{background-position:91% 0%}
+    50%{background-position:10% 100%}
+    100%{background-position:91% 0%}
+}
+@-moz-keyframes AnimationName {
+    0%{background-position:91% 0%}
+    50%{background-position:10% 100%}
+    100%{background-position:91% 0%}
+}
+@-o-keyframes AnimationName {
+    0%{background-position:91% 0%}
+    50%{background-position:10% 100%}
+    100%{background-position:91% 0%}
+}
+@keyframes AnimationName {
+    0%{background-position:91% 0%}
+    50%{background-position:10% 100%}
+    100%{background-position:91% 0%}
+}
+path{
+	-webkit-tap-highlight-color: rgba(0,0,0,0);
+	cursor: crosshair;
+}
+.chatcolor{
+	float: right;
+    border: 1px #555 solid;
+}
+*:focus {
+    outline: none;
+}
+
+.show{
+	font-size: 16px;
+	z-index: 2;
+	cursor: pointer;
+	-webkit-user-select: none;
+}
+.msg{
+	overflow: hidden;
+	word-wrap: break-word;
+	word-break: break-word;
+    padding: 1px;
+	border-top: 1px solid #444;
+}
+.msgdate{
+	margin-right: .5em;
+	float: right;
+	color: #777;
+}
+
+*::-webkit-scrollbar-track
+{
+	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+	background-color: #aaa;
+}
+
+*::-webkit-scrollbar
+{
+	width: 4px;
+	background-color: #aaa;
+}
+
+*::-webkit-scrollbar-thumb
+{
+	background-color: #333;
+}
+
+hr{
+	margin-bottom: 0;
+	margin-top: 0;
+    border: 1px solid #444;
+}
+
+iframe {
+    border-width: 0;
+    border-style: 0;
+    border-color: 0;
+    border-image: 0;
+    left: 0px;
+	-webkit-tap-highlight-color: rgba(0,0,0,0);
+	-webkit-tap-highlight-color: transparent;
+	-webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+@media only screen and (max-width: 1199px){
+	body{
+		font-size: 1.5rem;
+		overflow: auto;
+	}
+	.chatwindow{
+		font-size: 1.5rem;
+		overflow: hidden !important;
+		height: initial !important;
+	}
+	.camera-img{
+		height: 2rem;
+	}
+	.btn{
+		font-size: 1.5rem;
+	}
+	.navbar-brand{
+		font-size: 1.5rem;
+	}
+	body::-webkit-scrollbar{
+		width: initial;  /* remove scrollbar space */
+		background: initial;  /* optional: just make scrollbar invisible */
+	}
+	.map
+}
+
+@media print
+{
+    .no-print, .no-print *
+    {
+        display: none !important;
+    }
+}
+img.emoji {
+   height: 1em;
+   width: 1em;
+   margin: 0 .05em 0 .1em;
+   vertical-align: -0.1em;
+}
+
+
+
+/* ADS SHIT WITH AD TOP BAR *//* ADS SHIT WITH AD TOP BAR *//* ADS SHIT WITH AD TOP BAR *//* ADS SHIT WITH AD TOP BAR *//* ADS SHIT WITH AD TOP BAR *//* ADS SHIT WITH AD TOP BAR */
+	.sidenav {
+		height: 0;
+		width: 100%;
+		position: fixed;
+		z-index: 1;
+		top: 0;
+		left: 0;
+		background-color: #111;
+		overflow-x: hidden;
+		transition: 0.5s;
+		padding-top: 0px;
+	}
+
+	.sidenav a {
+		padding: 8px 8px 8px 32px;
+		text-decoration: none;
+		font-size: 25px;
+		color: #818181;
+		display: block;
+		transition: 0.3s
+	}
+
+	.sidenav a:hover, .offcanvas a:focus{
+		color: #f1f1f1;
+	}
+
+	.sidenav .closebtn {
+		padding: 8px;
+		position: absolute;
+		top: 0;
+		right: 25px;
+		font-size: 36px;
+	}
+
+	#main {
+		transition: margin-top .5s;
+	}
+/* ADS SHIT WITH AD TOP BAR *//* ADS SHIT WITH AD TOP BAR *//* ADS SHIT WITH AD TOP BAR *//* ADS SHIT WITH AD TOP BAR *//* ADS SHIT WITH AD TOP BAR *//* ADS SHIT WITH AD TOP BAR */
+
+
+/* Loading screen *//* Loading screen *//* Loading screen *//* Loading screen *//* Loading screen */
+	.loadscreen{
+		cursor: wait;
+		overflow: hidden;
+		transition: width 2s, height 2s, margin-top 2s, margin-left 2s, margin-bottom 2s, margin-right 2s;
+		width: 100%;
+		height: 100%;
+		display: block;
+		position: fixed;
+		z-index: 1001; /* to overlay bootstrap navbar, lol */
+		background: #72A68E;
+		background:radial-gradient(ellipse at center, rgba(0,128,128,1) 0%, rgba(84,123,105,1) 100%); /* w3c */
+			background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%, rgba(0,128,128,1)), color-stop(100%, rgba(84,123,105,1))); /* safari4+,chrome */
+			background:-webkit-radial-gradient(center, ellipse cover, rgba(0,128,128,1) 0%, rgba(84,123,105,1) 100%); /* safari5.1+,chrome10+ */
+			background: -o-radial-gradient(center, ellipse cover, rgba(0,128,128,1) 0%, rgba(84,123,105,1) 100%); /* opera 11.10+ */
+			background: -ms-radial-gradient(center, ellipse cover, rgba(0,128,128,1) 0%, rgba(84,123,105,1) 100%); /* ie10+ */
+			background: -moz-radial-gradient(center, ellipse cover, rgba(0,128,128,1) 0%, rgba(84,123,105,1) 100%); /* ff3.6+ */
+			filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#008080', endColorstr='#547b69',GradientType=1 ); /* ie6-9 */
+	}
+	.loadscreen.fast{
+		transition: width .5s, height .5s, margin-top .5s, margin-left .5s, margin-bottom .5s, margin-right .5s;
+	}
+
+
+	.spinner {
+		overflow: hidden;
+		width: 50vh;
+		margin: 20vh auto 0;
+		animation: sk-rotateplane 2.4s infinite ease-in-out;
+	}
+
+	.loadscreen .progressbar{
+		min-width: 100px;
+		overflow: hidden;
+		width: 50%;
+		margin: 10vh auto;
+		position: relative;
+		text-align: center;
+		height: 40px;
+		position: relative;
+		background: #333;
+		border: 1px solid #13151b;
+	}
+	.loadscreen .progressbar div{
+		height: 100%;
+		width: 0%;
+		position: relative;
+		background-color: #aaa;
+		/*transition: width 0.4s;*/
+	}
+	.loadscreen .progressbar div span{
+		display: block;
+		box-sizing: border-box;
+		padding-right: 4px;
+		color: #13151b;
+		font: bold 18px/40px Plumb, Arial, Helvetica, sans-serif;
+		text-align: right;
+	}
+
+
+	@keyframes sk-rotateplane {
+	  0% {
+		transform: perspective(40vh) rotateX(0deg) rotateY(0deg);
+	  } 25% {
+		transform: perspective(40vh) rotateX(-180deg) rotateY(0deg);
+	  } 50% {
+		transform: perspective(40vh) rotateX(-180deg) rotateY(-180deg);
+	  } 75% {
+		transform: perspective(40vh) rotateX(-180deg) rotateY(0deg);
+	  }
+	}
+
+/* Loading screen *//* Loading screen *//* Loading screen *//* Loading screen *//* Loading screen */
+
+
+/*shit for search engines */
+searchtext {
+		position:absolute;
+		left:0px;
+		top:-500px;
+		width:1px;
+		height:1px;
+		overflow:hidden;
+	}
+/*shit for search engines */
+
+/* input type range slider */
+
+	.slider {
+		width: 100%;
+		margin: 50% auto;
+		display: inline;
+	}
+
+/* track */
+	input[type="range"] {
+		-webkit-appearance: none !important;
+		width: calc(100% - 3em);
+		display: block;
+		height: .2em;
+		background-color: #222;
+		border: none;
+		border-radius: 10px;
+		margin: auto;
+		transition: all 400ms;
+		outline:none;
+		padding: 0;
+		margin: .5em 0 .5em 1.5em;
+	}
+	input[type="range"]::-moz-range-track {
+		width: 100%;
+		height: .2em;
+		background-color: #222;
+		border: none;
+		border-radius: 10px;
+		margin: auto;
+		transition: all 400ms;
+		outline:none;
+		padding: 0;
+		margin: 0;
+	}
+
+/* thumb */
+	input[type="range"]::-webkit-slider-thumb {
+		-webkit-appearance: none !important;
+		transform:scale(0.75);
+		width: 20px;
+		height: 20px;
+		border: none;
+		background-color: #aaa;
+		border-radius: 40px;
+		transition: all 400ms;
+		outline:none
+	}
+	input[type="range"]::-moz-range-thumb {
+		-webkit-appearance: none !important;
+		transform:scale(0.75);
+		width: 20px;
+		height: 20px;
+		border: none;
+		background-color: #aaa;
+		border-radius: 30px;
+		transition: all 400ms;
+		outline:none
+	}
+
+/* thumb hover */
+	input[type="range"]::-webkit-slider-thumb:hover {
+		transform:scale(0.85);
+	}
+	input[type="range"]::-moz-range-thumb:hover{
+		transform:scale(0.85);
+	}
+
+/* thumb active */
+	input[type="range"]::-webkit-slider-thumb:active {
+		transform:scale(1);
+	}
+	input[type="range"]::-moz-range-thumb:active{
+		transform:scale(1);
+	}
+/* input type range slider */
+
+/* colored names */
+	[data-name-color="0"]{
+		color: #a19be3;
+	}
+	[data-name-color="1"]{
+		color: #9BE3C0;
+	}
+	[data-name-color="2"]{
+		color: #B4CC8C;
+	}
+	[data-name-color="3"]{
+		color: #E3D19B;
+	}
+	[data-name-color="4"]{
+		color: #E390D1;
+	}
+/* colored names END */
+
+/* tooltips */
+	/* Tooltip text */
+	.jvectormap-tip{
+		background: repeating-linear-gradient(
+			  45deg,
+			  #222,
+			  #222 10px,
+			  #333 10px,
+			  #333 20px
+			);
+		border: 1px solid #222;
+		color: #fff;
+		text-align: center;
+		padding: 5px;
+		border-radius: 6px;
+		z-index: 999;
+	}
+	.player-tooltip{
+		font-family: sans-serif, Verdana;
+		font-size: smaller;
+		background: repeating-linear-gradient(
+			  45deg,
+			  #222,
+			  #222 10px,
+			  #333 10px,
+			  #333 20px
+			);
+		border: 1px solid #222;
+		visibility: hidden;
+		color: #fff;
+		text-align: center;
+		padding: 5px;
+		border-radius: 6px;
+
+		/* Position the tooltip text */
+		position: absolute;
+		z-index: 999;
+
+		/* Fade in tooltip */
+		opacity: 0;
+		transition: opacity 1s;
+	}
+	.player-flag{
+		width: 5em;
+		height: 5em;
+		box-sizing: border-box;
+		margin-right: 5px;
+		vertical-align: top
+	}
+	.player-profile{
+		display: inline-block;
+	}
+	.player-menu{
+		position: absolute;
+		display: none;
+		opacity: 0;
+		z-index: 999;
+		transition: opacity .6s;
+	}
+/* tooltips END */
+
+
+.dropdown-menu{
+	color: #aaaaaa;
+    background-color: #222;
+}
+.navbar *::selection {
+    background: none !important;
+}
+.navbar {
+	user-select: none;
+}
+.navbar *:not(button):not(a){
+	cursor:default;
+}
+.alertify-logs {
+	pointer-events: none;
+}
+
+
+@-webkit-keyframes neon {
+	0% {
+		text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #FFDD1B, 0 0 70px #FFDD1B, 0 0 80px #FFDD1B, 0 0 100px #FFDD1B, 0 0 150px #FFDD1B;
+	}
+	50% {
+		text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px #FFDD1B, 0 0 35px #FFDD1B, 0 0 40px #FFDD1B, 0 0 50px #FFDD1B, 0 0 75px #FFDD1B;
+	}
+	100% {
+		text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #FFDD1B, 0 0 70px #FFDD1B, 0 0 80px #FFDD1B, 0 0 100px #FFDD1B, 0 0 150px #FFDD1B;
+	}
+}
+
+@keyframes overwatch {
+	0% {
+		visibility: visible;
+		transform: perspective(100px) translateZ(100vmax);
+	}
+	25% {
+		transform: perspective(100px) translateZ(0px);
+	}
+	75% {
+		transform: perspective(100px) translateX(0px);
+	}
+	100%{
+		transform: perspective(100px) translateX(100vw);
+	}
+}
+
+.neon {
+	animation: neon 2s infinite;
+}
+
+.overwatch-alert {
+	color: #f7e400;
+	-webkit-text-stroke-width: 0.25vmin;
+	-webkit-text-stroke-color: black;
+	visibility: hidden;
+	z-index: 1000;
+	height: 100vh;
+	width: 100vw;
+	display: flex!important;
+	justify-content: center;
+	align-items: center;
+	position: fixed;
+	left: 0;
+	top: 0;
+	font-size: 20vmin;
+	font-family: Overwatch;
+	animation: overwatch 4s 1;
+	pointer-events: none;
+	user-select: none;
+}

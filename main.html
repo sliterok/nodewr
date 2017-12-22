@@ -1,0 +1,385 @@
+<html>
+<head>
+	<title>WorldRoulette - Карта</title>
+	<script>
+	try {
+		eval("let a5912839;");
+	} catch (e){
+		window.stop();
+		alert('У вас очень старый браузер, загрузка отменена');
+	}
+	</script>
+	<!--<meta name="theme-color" content="#373a3c" />-->
+	<meta name="msapplication-navbutton-color" content="#373a3c">
+	<meta name="apple-mobile-web-app-status-bar-style" content="#373a3c">
+
+	<!--God, I hate favicons-->
+	<link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png?v=3">
+	<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png?v=3">
+	<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png?v=3">
+	<link rel="manifest" href="/assets/icons/manifest.json?v=3">
+	<link rel="mask-icon" href="/assets/icons/safari-pinned-tab.svg?v=3" color="#5bbad5">
+	<link rel="shortcut icon" href="/assets/icons/favicon.ico?v=3">
+	<meta name="apple-mobile-web-app-title" content="WorldRoulette">
+	<meta name="application-name" content="WorldRoulette">
+	<meta name="msapplication-config" content="/assets/icons/browserconfig.xml?v=3">
+	<meta name="theme-color" content="#3c8578">
+	<!--Bless the God it's ended-->
+
+
+	<link rel="stylesheet" href="/font-awesome.min.css">
+	<link rel="stylesheet" href="/bootstrap/bootstrap.min.css">
+	<link href="https://fonts.googleapis.com/css?family=Montserrat:700|Roboto&subset=cyrillic" rel="stylesheet">
+	<link rel="stylesheet" href="/jquery-jvectormap-2.0.3.css" type="text/css" media="screen" />
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	<link rel="stylesheet" type="text/css" href="flag-icon.min.css">
+
+	<script src="/twemoji.min.js"></script>
+	<script src="/jquery.js"></script>
+	<script src="/jquery.mobile.custom.min.js"></script>
+	<script src="https://cdn.rawgit.com/eligrey/FileSaver.js/master/FileSaver.min.js"></script>
+	<script src="socket.io/socket.io.js"></script>
+	<script>
+	let socket = io('https://socket.worldroulette.ru:444', {secure: true});
+	$('#no-connection').css('display', 'none');
+	socket.on('connect', function() {
+	  $('#no-connection').css('display', 'none');
+	});
+	socket.on('disconnect', function() {
+	  $('#no-connection').css('display', '');
+	});
+	</script>
+	<script src="/jscolor.min.js"></script>
+	<script src="/factions.js"></script>
+	<script src="/chat.js"></script>
+	<script type="text/javascript" src="/captcha.js"></script>
+	<script src="/map.js"></script>
+	<script src="/jquery-jvectormap-2.0.3.min.js"></script>
+	<script src="/jquery-jvectormap-world-mill-ru.js"></script>
+	<script src="/bootstrap/bootstrap.min.js"></script>
+	<script src="/alertify.js"></script>
+	<script src="/fuckadblock.js"></script>
+	<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback" async defer></script>
+	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+	<script>
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+		ga('create', 'UA-78463564-1', 'auto');
+		ga('send', 'pageview');
+	</script>
+	
+</head>
+<body>
+	<div class="loadscreen" onclick="$(this).fadeOut();">
+		<div class="spinner">
+			<img src="/assets/wr map.webp" style="width: 100%;" alt="WR">
+		</div>
+		<div class="progressbar">
+			<div><span>0%</span></div>
+		</div>
+	</div>
+	<script>
+    var notifysound = new Audio('/assets/notify.wav');
+	function resize(){
+		if(map) map.updateSize();
+		if($(window).width() < 1196){
+			var navbarh = $('.navbar').outerHeight();
+			$('#map').height('70%');
+			$('#mapshadow').height('calc(100% - '+navbarh+'px)');
+			$('#chat').css('height', '');
+			$('#chatwindow').css('height', '');
+			$('#menu').css('height', '');
+		} else {
+			var navbarh = $('.navbar').outerHeight();
+			var adh = $('#topAd').height();
+			$('#map').height('calc(100% - '+navbarh+'px - '+adh+'px)');
+			$('#map,#mapshadow').height('calc(100% - '+navbarh+'px)')
+			$('#menu').css('height', '18em');
+			$('#chat').css('height', 'calc(100% - 18em - 11px - '+adh+'px)');
+			var chatty = $('#chatty').height();
+			var chat = $('#chat').height();
+			var entirechat = chat-chatty;
+			$('#chatwindow').css('height', entirechat+'px');
+			//$('#chatwindow').css('height', ($(window).height() - $('#menu').height() - $('#chatty').height() - 10));
+		};
+	}
+	window.onresize = resize;
+	alertify.maxLogItems(20);
+	alertify.delay(20000);
+	alertify.parent(document.body);
+	alertify.closeLogOnClick(true);
+	alertify.logPosition("bottom left");
+    alertify.setLogTemplate(function (input) {
+		if(typeof input == "object"){
+			notifysound.volume = audioenabled/500;
+			notifysound.currentTime = 0;
+			notifysound.play();
+			return `<img src="/assets/fox.webp" style="height: 3em">`+input[0];
+		}
+        return `<img src="/assets/fox.webp" style="height: 3em">`+input;
+    });
+	function openAd(caller) {
+		//if(Math.max(document.documentElement.clientWidth, window.innerWidth || 0) < 1196){return;}
+		if(adblock === true){
+			return;
+		}
+		if(Date.now() - localStorage.adTimer > 1000*60*2 || !localStorage.adTimer){
+			if(caller == 'click'){
+				if(document.getElementById('aswift_0')) document.getElementById('aswift_0').contentWindow.location.reload(true);
+			}
+			document.getElementById("topAd").style.height = "90px";
+			document.getElementById("main").style.marginTop = "90px";
+			setTimeout(closeAd, 10000);
+			setTimeout(resize, 510);
+			localStorage.adTimer = Date.now();
+		}
+	}
+
+	function closeAd() {
+		document.getElementById("topAd").style.height = "0";
+		document.getElementById("main").style.marginTop= "0";
+		setTimeout(resize, 510);
+	}
+	function adBlockDetected(){
+		alertify.error('Вы включили блокировщик рекламы. Мне жаль.');
+	}
+	var adblock = true;
+	$(function(e){
+		if(typeof fuckAdBlock !== 'undefined' && fuckAdBlock._var) {
+			fuckAdBlock.onNotDetected(function(e){
+				adblock = false;
+			});
+			fuckAdBlock.onDetected(adBlockDetected);
+		} else {
+			adBlockDetected();
+		}
+		setTimeout(openAd, 2000, 'load');
+	})
+	//If something goes wrong. Probably because of this:
+	window.setInterval(resize, 1000);
+	</script>
+	<div id="topAd" class="sidenav">
+		<!-- /305084756/WorldRoulette1_test -->
+		<center>
+		<ins class="adsbygoogle"
+			 style="display:inline-block;width:728px;height:90px"
+			 data-ad-client="ca-pub-2988487114877284"
+			 data-ad-slot="4024908259"></ins>
+		</center>
+		<script>
+		(adsbygoogle = window.adsbygoogle || []).push({});
+		</script>
+		<a href="javascript:void(0)" class="closebtn" onclick="closeAd()">&times;</a>
+	</div>
+	<div id="main" class="well row" style="margin: 0;">
+		<span class="player-tooltip"></span>
+		<div class="well map col-xl-8">
+			<nav class="navbar navbar-full navbar-dark bg-inverse mui--no-user-select">
+				<a class="navbar-brand" href="javascript:location.reload()">
+					<img src="/assets/wr new.webp" style="height: 1em" class="d-inline-block align-middle" alt="">
+					WorldRoulette
+				</a>
+				<span class="float-md-right">
+					<span class="text-muted">
+						<span class="fa-stack fa-lg" style="height: 2rem">
+							<i class="fa fa-signal fa-stack-lg" aria-hidden="true"></i>
+							<i id="no-connection" class="fa fa-ban fa-stack-1x text-danger" aria-hidden="true"></i>
+						</span>
+						<span>
+							<span id="online"></span>
+							<span class="sr-only">Онлайн:</span>
+							<i class="fa fa-users" aria-hidden="true"></i>
+						</span>
+					</span>
+					<button class="btn btn-md" id="faqbtn">
+					FAQ <i class="fa fa-question-circle" aria-hidden="true"></i>
+					</button>
+					<button class="btn btn-md" id="takescreen">
+						<i class="fa fa-camera-retro" aria-hidden="true" style="line-height: 1.25"></i>
+					</button>
+				</span>
+				<button class="btn btn-md" id="menubtn"><i class="fa fa-bars" aria-hidden="true"></i>
+				Меню
+				</button>
+				<button class="btn btn-md" id="fbtn"><i class="fa fa-address-book-o" aria-hidden="true"></i>
+				Фракции
+				</button>
+			</nav>
+			<span class="well mapdib top"></span>
+			<span class="well mapdib date"></span>
+			<div id="mapshadow"></div>
+			<div id="map" style="height: 95%; width: 100%"></div>
+		</div><!--
+		<div class="well">
+			//<button id="playvideo" class="btn btn-primary" style="display: hidden">Просмотреть историю</button>
+			<a href="/top.php">Полный список</a>
+			<div class="row-fluid">
+				<div id="gtop" class="span6"></div>
+				<div id="gclantop" class="span6"></div>
+			</div>
+		</div>-->
+		<div class="col-xl-4 no-print" style="padding: 0; padding-left: 8px; padding-right: 8px">
+		<div class="well" id="menu">
+			<h3 style="margin: 11px" class="page-header">Меню карты </h3>
+			<button id="capt" class="btn" style="width: 100%; height: 78px; display:block">
+				<div id="capttext">Захватить</div>
+				<i id="captpause" class="fa fa-connectdevelop fa-spin fa-2x fa-fw" style="display: none"></i>
+			</button>
+
+			<div id="captcha" style="display: none;">
+				<div style="display: inline-block; margin-top: 10px;" class="g-recaptcha" data-sitekey="6LdD1R8TAAAAAEVx92bj1yKnRui-6VtdklYKgn1y" data-theme="dark"></div>
+			</div>
+
+			<input type="text" id="givenick" style="margin-top: 10px; width:inherit;" placeholder="id пользователя" type="text"/>
+			<!--<button id="giveall">Передать всё</button>-->
+			<button id="give" class="btn btn-md" style="margin-top: 0px">Передать</button>
+			<div>Связь с админом -
+				<a target="_blank" href="https://2ch.hk/brg/res/542612.html"><i class="fa fa-bolt fa-lg"></i></a>
+				|
+				<a target="_blank" href="https://t.me/worldroulette"><i class="fa fa-telegram fa-lg" aria-hidden="true"></i></a>
+			</div>
+		</div>
+
+
+		<div class="well" id="chat">
+			<div id="chatty">
+				<hr>
+				<h3 id="chatheader">Чат</h3>
+				<input style="white-space: nowrap; width: 100%; display: block;" id="chatmsg" type="text" maxlength="200" placeholder="Сообщение">
+				<button id="sendmsgbutton" style="width: 100%; display: block;" onclick="sendMessage();">Отправить</button>
+			</div>
+			<div class="chatwindow well" id="chatwindow" readonly></div>
+			<script type="text/javascript">
+			function msgval(name)
+			{
+				doc = document.getElementById("chatmsg")
+				doc.value += name + " ";
+				doc.focus();
+			}/*
+			function ban(name)
+			{
+					if(!confirm("Вы уверены что хотите кикнуть пользователя " + name + "?")){return;}
+					$.post(
+						"/ban.php",
+						{
+							usertoban: name
+						}
+					);
+			}*/
+			</script>
+		</div>
+		</div>
+	</div>
+
+	<div id="faq" class="auth" style="display:none; text-align:left; padding:15px">
+		<img src="/assets/wr new.webp" class="d-block w-50 mx-auto"/>
+		<p>
+			Вы вошли в свой аккаунт, поздравляем!<br>
+			Теперь вы можете играть в эту замечательную игру!<br>
+			Как?<br>
+			Выбирайте любую страну и нажимайте на неё<br>
+			Затем нажимайте на кнопку захватить, и если вам выпало:<br>
+			Две одинаковые последние цифры(11,22), то вы отняли 1 силу<br>
+			Три одинаковые последние цифры(111), то вы отняли 2 силы<br>
+			Четыре одинаковые последние цифры(1111), то вы отняли 4 силы<br>
+			Если же вам не повезло так, то попробуйте еще раз!<br>
+			<b>КАРТУ МОЖНО ПРИБЛИЖАТЬ КОЛЕСИКОМ МЫШИ ИЛИ ДВУМЯ ПАЛЬЦАМИ</b><br>
+			Вы можете сменить цвет или имя, зайдя в меню<br>
+			Вы можете писать личные сообщения! /msg id сообщение
+		</p>
+		<hr>
+		<h3>Известные личности</h3>
+		<p>
+			<h5 class="text-center">Захватили мир</h5>
+			<div class="text-center"><b>(2)</b> <span class="chatname 675" data-name-color="2"></span></div>
+			<div class="text-center"><b>(2)</b> <span class="chatname 945" data-name-color="2"></span></div>
+			<div class="text-center"><b>(3)</b> <span class="chatname 648" data-name-color="4"></span></div>
+			<div class="text-center"><b>(5)</b> <span class="chatname 1231" data-name-color="0"></span></div>
+			<div class="text-center"><b>(1)</b> <span class="chatname 1954" data-name-color="2"></span></div>
+			<div class="text-center"><b>(1)</b> <span class="chatname 806" data-name-color="3"></span></div>
+			<div class="text-center"><b>(1)</b> <span class="chatname 908" data-name-color="3"></span></div>
+			<div class="text-center"><b>(1)</b> <span class="chatname 2193" data-name-color="3"></span></div>
+			<div class="text-center"><b>(1)</b> <span class="chatname 2242" data-name-color="3"></span></div>
+		</p>
+		<h5 class="text-center">Наши друзья</h5>
+		<div class="text-center"><a target="_blank" href="http://parolja.net/">Пароля.нет</a></div>
+		<div class="text-center"><a target="_blank" href="https://my.argotel.ru/aff.php?aff=45">argotel.ru</a></div>
+	</div>
+
+	<div id="mmenu" style="display:none;" class="auth">
+		<button class="login" id="changecolorbtn">Цвет</button> :
+		<input type="text" class="jscolor login" id="newcolor" value="#FF00FF" data-jscolor="{onFineChange:'return false'}"/><br>
+		<small class="form-text text-muted">Новый цвет в формате <a href="https://ru.wikipedia.org/wiki/Цвета_HTML">HEX</a></small>
+		<button class="login" id="changenamebtn">Имя</button> :
+		<input type="text" class="login" id="newname" placeholder="Алексей"/><br>
+		<small class="form-text text-muted">Введите новое имя</small>
+		<button class="login" id="changeemojibtn">Уникальная emoji</button> :
+		<input type="text" class="login" id="newemoji" placeholder="😊"/><br>
+		<small class="form-text text-muted">Доступна только после захвата мира</small>
+		<button class="login" id="changeflagbtn">Герб</button> :
+		<input type="file" id="newflag" accept="image/x-png,image/gif,image/jpeg"><br>
+		<small class="form-text text-muted">Герб для вашего государства</small>
+		<hr>
+		<span>Громкость звуков</span><input type="range" id="soundrange" min="0" max="10000"><span></span><br>
+		<button class="login" id="changebkgbtn">Упрощенный фон</button>
+		<button class="login" id="togtopbtn">вкл/выкл топ</button>
+	</div>
+
+	<div id="fmenu" style="display:none;" class="auth">
+		<div id="fadmin" style="display:none">
+			<h3>Управление фракцией</h3>
+			<button class="login" id="changefcolorbtn">Цвет</button>:
+			<input type="text" style="margin-bottom: 10px" class="jscolor login" id="newfcolor" value="#00FF00" data-jscolor="{onFineChange:'return false'}"/><br>
+			<button class="login" id="changefnamebtn">Название</button>:
+			<input type="text" style="margin-bottom: 10px" class="login" id="newfname" placeholder="Четвертый рейх"/><br>
+			<button class="login" id="invitetofbtn">Пригласить игрока</button>:
+			<input type="text" style="margin-bottom: 10px" class="login" id="invitetof" placeholder="ID"/><br>
+			<button class="login" id="deletef">Удалить фракцию</button>
+			<h3>Участники фракции</h3>
+			<div class="factionplayers"></div>
+		</div>
+		<div id="fnone">
+			<h3>Создать фракцию</h3>
+			<input type="text" style="margin-bottom: 10px" class="jscolor login" id="fcolor" value="#696969" data-jscolor="{onFineChange:'return false'}"/><br>
+			<input type="text" style="margin-bottom: 10px" class="login" id="fname" placeholder="название"/><br>
+			<button class="login" id="createf">Создать</button>
+			<h3>Приглашения в фракции</h3>
+			<div id="invites"></div>
+		</div>
+		<div id="fuser" style="display:none">
+			<h3>Участники фракции</h3>
+			<div class="factionplayers"></div><br>
+			<button class="login" id="leavef">Выйти из фракции</button>
+		</div>
+	</div>
+
+	<div id="mtop" style="display:none;" class="auth"></div>
+	<div class="dropdown clearfix player-menu">
+		<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu" style="display:block;position:static;">
+			<li><button tabindex="-1" class="player-menu-give">Выбрать для передачи</button></li>
+			<li><button tabindex="-1" class="player-menu-msg">Приватное сообщение</button></li>
+		</ul>
+	</div>
+	<script>
+		let pmenu = $('.player-menu');
+		$('.player-menu-give').click(e=>{
+			$('#givenick').val(pmenu.data('pid')).focus();
+		})
+		$('.player-menu-msg').click(e=>{
+			chatmsg.value = `/msg ${pmenu.data('pid')} `;
+			chatmsg.focus();
+		})
+		$(window).click(e=>{
+			pmenu.css({
+				display: '',
+				opacity: '',
+				left: '',
+				top: ''
+			});
+		})
+	</script>
+</body>
+</html>

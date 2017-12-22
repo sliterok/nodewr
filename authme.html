@@ -1,0 +1,92 @@
+<html>
+<head>
+	<title>WorldRoulette - Авторизация</title>
+	<script>
+	try {
+		eval("let a5912839;");
+	} catch (e){
+		window.stop();
+		alert('У вас очень старый браузер, загрузка отменена');
+	}
+	</script>
+
+	<!--<meta name="theme-color" content="#373a3c" />-->
+	<meta name="msapplication-navbutton-color" content="#373a3c">
+	<meta name="apple-mobile-web-app-status-bar-style" content="#373a3c">
+
+	<!--God, I hate favicons-->
+	<link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png?v=3">
+	<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png?v=3">
+	<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png?v=3">
+	<link rel="manifest" href="/assets/icons/manifest.json?v=3">
+	<link rel="mask-icon" href="/assets/icons/safari-pinned-tab.svg?v=3" color="#5bbad5">
+	<link rel="shortcut icon" href="/assets/icons/favicon.ico?v=3">
+	<meta name="apple-mobile-web-app-title" content="WorldRoulette">
+	<meta name="application-name" content="WorldRoulette">
+	<meta name="msapplication-config" content="/assets/icons/browserconfig.xml?v=3">
+	<meta name="theme-color" content="#3c8578">
+	<!--Bless the God it's ended-->
+
+	<link href="https://fonts.googleapis.com/css?family=Montserrat:700|Roboto&subset=cyrillic" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="styles.css">
+	<link rel="stylesheet" href="/jquery-jvectormap-2.0.3.css" type="text/css" media="screen" />
+
+	<script src="/twemoji.min.js"></script>
+	<script src="/jquery.js"></script>
+	<script src="socket.io/socket.io.js"></script>
+	<script>let socket = io('https://socket.worldroulette.ru:444', {secure: true});</script>
+	<script src="/factions.js"></script>
+	<script src="/map.js"></script>
+	<script src="/jquery-jvectormap-2.0.3.min.js"></script>
+	<script src="/jquery-jvectormap-world-mill-ru.js"></script>
+	<script type="text/javascript">
+      var onloadCallback = function() {
+        lcaptcha = grecaptcha.render('logcaptcha', {
+          'sitekey' : '6LdD1R8TAAAAAEVx92bj1yKnRui-6VtdklYKgn1y',
+          'callback' : login,
+          'theme' : 'dark'
+        });
+        rcaptcha = grecaptcha.render('regcaptcha', {
+          'sitekey' : '6LdD1R8TAAAAAEVx92bj1yKnRui-6VtdklYKgn1y',
+          'callback' : register,
+          'theme' : 'dark'
+        });
+		//map.updateSize();
+      };
+    </script>
+</head>
+<body style="background-image: url(spaceengine.jpg);">
+	<searchtext>Авторулетка - твоя, ламповая. Захватывай мир нажатием одной кнопки! Объединяйся с другими!</searchtext>
+	<searchtext>Добро пожаловать. Снова.</searchtext>
+	<div class="loadscreen fast" onclick="$(this).fadeOut();" style="margin-top: -100vh; display: none">
+		<div class="spinner" style="animation: initial">
+			<img src="/assets/wr map.webp" style="width: 100%;" alt="WR">
+		</div>
+		<div class="progressbar">
+			<div><span>0%</span></div>
+		</div>
+	</div>
+	<div style="width: 20%, height: 20%" id="map" class="prev">
+	<iframe id="frame0" name="frame0" width=100% height=100% style="position:absolute;z-index:-1"></iframe>
+	</div>
+	<div id="auth" class="auth" style="top: 40%">
+		<span class="logbtn">Авторизация</span> | <span class="regbtn">Регистрация</span><br>
+		<input type="text" class="login" id="llogin" placeholder="Логин" />
+		<input type="password" class="pass" id="lpass" placeholder="Пароль"/><br>
+		<div id="logcaptcha" class="g-recaptcha"></div>
+	</div>
+	<div style="display:none;top: 40%" id="reg" class="auth">
+		<span class="logbtn">Авторизация</span> | <span class="regbtn">Регистрация</span><br>
+		<input type="text" class="login" id="login" placeholder="Логин (3-15, A-z, 0-9)" /><br>
+		<input type="text" class="name" id="name" placeholder="Имя (3-35, Любые символы)" /><br>
+		<input type="password" class="pass" id="pass" placeholder="Пароль (3-50)"/><br>
+		<div id="regcaptcha" class="g-recaptcha"></div>
+	</div>
+	<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit"
+		async defer>
+	</script>
+	<script src="/alertify.js"></script>
+	<script src="/authme.js"></script>
+<div>Наши друзья: <a target="_blank" href="http://parolja.net/">parolja.net</a></div>
+</body>
+</html>

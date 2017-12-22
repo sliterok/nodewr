@@ -1,0 +1,18 @@
+{
+    "name": "WorldRoulette",
+    "icons": [
+        {
+            "src": "/assets/icons/android-chrome-192x192.png?v=3",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/assets/icons/android-chrome-512x512.png?v=3",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#3c8578",
+    "background_color": "#3c8578",
+    "display": "standalone"
+}

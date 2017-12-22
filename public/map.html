@@ -1,0 +1,258 @@
+<link href="https://fonts.googleapis.com/css?family=Montserrat:700|Roboto&subset=cyrillic" rel="stylesheet">
+<style>
+	body{
+		font-family: 'Roboto', sans-serif;
+		margin: 0;
+		color: #fff;
+	}
+	.mapdib{
+		position: absolute;
+		padding: 3px;
+		pointer-events: none;
+		background-color: rgba(22, 22, 22, 0.5);
+		z-index: 1;
+	}
+	img.emoji {
+	   height: 1em;
+	   width: 1em;
+	   margin: 0 .05em 0 .1em;
+	   vertical-align: -0.1em;
+	}
+	.mapdib.chat{
+		bottom: 0;
+		overflow: hidden;
+		height: 150px;
+		width: 400px;
+	}
+
+	*::-webkit-scrollbar-track
+	{
+		-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+		background-color: #aaa;
+	}
+
+	*::-webkit-scrollbar
+	{
+		width: 4px;
+		background-color: #aaa;
+	}
+
+	*::-webkit-scrollbar-thumb
+	{
+		background-color: #333;
+	}
+
+	[data-name-color="0"]{
+		color: #a19be3;
+	}
+	[data-name-color="1"]{
+		color: #9BE3C0;
+	}
+	[data-name-color="2"]{
+		color: #B4CC8C;
+	}
+	[data-name-color="3"]{
+		color: #E3D19B;
+	}
+	[data-name-color="4"]{
+		color: #E390D1;
+	}
+</style>
+<div class="mapdib top"></div>
+<div id="map" style="width: 100%; height: 100%"></div>
+<div id="chatwindow" class="mapdib chat"></div>
+<script src="/twemoji.min.js"></script>
+<link rel="stylesheet" href="/font-awesome.min.css">
+<script src="/jquery.js"></script>
+<script src="socket.io/socket.io.js"></script>
+<script src="/jquery-jvectormap-2.0.3.min.js"></script>
+<script src="/jquery-jvectormap-world-mill-ru.js"></script>
+<link rel="stylesheet" href="/jquery-jvectormap-2.0.3.css" type="text/css" media="screen" />
+<script>
+	let socket = io('https://worldroulette.ru:444', {secure: true});
+</script>
+<script src="factions.js"></script>
+<script>
+	let auid,
+		Power,
+		number,
+		me,
+		map,
+		cdata,
+		players,
+		prev,
+		previousselect,
+		ccode,
+		mapDisabled = false;
+
+	function getPlayers(cb)
+	{
+		$.get(
+			"/getplayers",{}, function(data){
+				players = JSON.parse(data);
+				players.unshift({Color:"#ffffff",clan:"",id:0,imgur:"",name:""});
+				updatePlayers(cb);
+		});
+	}
+
+	function updatePlayers(cb)
+	{
+		for(let i = 0; i<players.length; i++){
+			$('.chatname.'+players[i].id).html(twemoji.parse(players[i].name));
+			$('.chatcolor.'+players[i].id).css('background-color', players[i].fid ? factions[players[i].fid].color : players[i].Color);
+		}
+		if($('#chatwindow').children().length == 0 && $('#chatwindow').length > 0){
+			if(!me) getthis(getmsg);
+			else getmsg();
+		}
+		if(cb) cb();
+	}
+
+
+	jQuery.post("/getthis", function(data) {
+		if(data == 'Ошибка сессии!' && decodeURIComponent(document.cookie).split(';').indexOf('session') > -1) return location.reload()
+		me = data;
+
+		getFactions(()=>{
+			getPlayers(()=>{
+				if(!prev){
+					getMap(gettop());
+				} else {
+					getMap();
+				}
+			});
+		})
+	});
+
+	var timeout;
+	var moving;
+	number = 0;
+	map = new jvm.Map({
+		map: 'world_mill',
+		backgroundColor: 'transparent',
+		container: $('#map'),
+		series: {
+			regions: [{
+				attribute: 'fill'
+			}]
+		},
+		zoomButtons: false
+	});
+
+	function getMap(cb){
+		jQuery.post("/get", data=>{
+			cdata = data;
+			updateMap(cb);
+		});
+	}
+	function updateMap(cb) {
+		let mapData = {};
+		for(let index in cdata){
+			let el = cdata[index];
+			mapData[index] = players[el.uid].fid ? factions[players[el.uid].fid].color : players[el.uid].Color;
+		}
+		map.series.regions[0].setValues(mapData);
+
+		$('#map').show();
+		map.updateSize();
+		if(cb) cb();
+	}
+
+	function gettop() {
+		jQuery.get("/top", data=>{
+			data = JSON.parse(data)
+			$('.mapdib.top').html('');
+			for(let el in data){
+				let pid = data[el].id;
+				if(!pid) return;
+				$('.mapdib.top').append(`<div><span class="chatcolor ${pid}" style="float: none; background-color: ${players[pid].fid ? factions[players[pid].fid].color : players[pid].Color}">&nbsp;&nbsp;&nbsp;&nbsp;</span> <span class="chatname ${pid}">${twemoji.parse(players[pid].name)}</span> ${data[el].score} силы</div>`);
+			}
+		});
+	}
+
+	socket.on('updatemap', function(msg){
+		getMap(gettop());//here!
+	});
+	socket.on('updateplayers', function(msg){
+		getPlayers(getMap);
+	});
+	map.updateSize();
+	window.onresize = function(){map.updateSize();};
+	window.onerror = function(err) {
+		document.write(err);
+	};
+	
+	
+	
+	
+	let lastmsgtime,
+	tcont,
+	chatmsg,
+	keyarr = [];
+	
+/* http_request for reading */
+function getmsg() {
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", '/chat', true);
+	xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+	xhr.onreadystatechange = function(){
+		if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) pulltochat(xhr.responseText);
+	};
+	xhr.send(JSON.stringify({last: lastmsgtime}));
+}
+/* chat stuff */
+socket.on('updatechat', function(data){
+	lastmsgtime = data;
+	if(players) getmsg();
+});
+function pulltochat(content) //Расположение контента чата
+{
+	if (!content) return alertify.error('Чат упал :(');
+	content = JSON.parse(content);
+	let keys = Object.keys(content);
+	for(let i = 0; i<keys.length; i++){
+		let key = keys[i],
+			item = content[key];
+		if($('#chatwindow').children().first().data('msgTime') == key) return;
+		if($('#chatwindow').find(key).length != 0) continue;
+		if(!lastmsgtime) lastmsgtime = key;
+		if($('#chatwindow').children().length > 30) $('#chatwindow').children().last().remove();
+		let el = $(`<div class="msg" data-msg-time="${key}"></div>`).prependTo('#chatwindow');
+		if(item.id == 13) el.css('background-color', 'rgba(51, 34, 34, 0.58)');
+		item.msg = twemoji.parse(item.msg);
+		let replaces = 0;
+		item.msg = item.msg.replace(/\$[0-9]{1,5}/g, function(a, b){
+			if(replaces > 10) return a;
+			replaces++;
+			var id = parseInt(a.substr(1));
+			if(players[id]){
+				var name = players[id].name;
+				name = twemoji.parse(name);
+				if(name == '') return a;
+				else return `<span class='chatname ${id}' data-name-color='${Math.floor((id % 10)/2)}'>${name}</span>`;
+			}
+			else return a;
+		});
+		replaces = 0;
+		item.msg = item.msg.replace(/\$[A-Z]{2}/gi, function(a, b){
+			if(replaces > 10) return;
+			replaces++;
+			return `<img class="flag-icon chat-flag" data-code="${a.substr(1).toUpperCase()}" onerror="$(this).replaceWith('${a}');" src='https://worldroulette.ru/flags/4x3/${a.substr(1).toLowerCase()}.svg'></img>`;
+		});
+		let name = twemoji.parse(players[item.id].name),
+			date = new Date(parseInt(key.substring(0, key.length-3)));
+		el.html(': ');
+		let msgel = $('<span>'+item.msg+'</span>').appendTo(el);
+		el.prepend(`<span class="chatname ${item.id}" data-name-color="${Math.floor((item.id % 10)/2)}">${name}</span>`);
+		let elmsg = $('.chatname.'+item.id);
+		el.hide().fadeIn(400);
+	}
+}
+	
+function addZero(i) {
+    if (i < 10) {
+        i = "0" + i;
+    }
+    return i;
+}
+</script>
