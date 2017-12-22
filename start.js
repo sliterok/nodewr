@@ -41,7 +41,7 @@ app.use((req, res, next)=>{
 
 const limiter = new RateLimit({
 	windowMs: 2000, // 1 second
-	max: 1, // limit each IP to 5 requests per second 
+	max: 1, // limit each IP to 5 requests per second
 	delayMs: 1000, // disable delaying - full speed until the max limit is reached
 	skip: function (req, res) {
 		console.log(req.path);
@@ -49,8 +49,8 @@ const limiter = new RateLimit({
 		else return true;
 	}
 });
- 
-//  apply to all requests 
+
+//  apply to all requests
 app.use(limiter);
 
 function jsParseIt(shit){
@@ -334,8 +334,14 @@ app.post('/roll', function (req, res) {
 								if((befuser[0].uid != nowuser[0].id) && ((befsess[0].fid != nowuser[0].fid && (nowuser[0].fid || befsess[0].fid)) || (befsess[0].fid == 0 && nowuser[0].fid == 0)))
 								{//Если разные кланы
 									if(befuser[0].sp <= sp){ //Если владелец терры меняется(очков силы хватило на захват)
-										connection.query(`UPDATE map SET uid = ${connection.escape(nowuser[0].id)}, sp = ${sp} WHERE Country = `+connection.escape(req.body.target), (err, rows, fields)=>{})
-										res.send(jsonsuccess(`Вам выпало: ${rand} и вы успешно захватили территорию "[${req.body.target}]"`, req.cookies.session, numbers));
+										if(befuser[0].sp == sp){
+											connection.query(`UPDATE map SET uid = ${connection.escape(nowuser[0].id)}, sp = 1 WHERE Country = `+connection.escape(req.body.target), (err, rows, fields)=>{})
+											res.send(jsonsuccess(`Вам выпало: ${rand} и вы успешно захватили территорию "[${req.body.target}]"`, req.cookies.session, numbers));
+										}
+										else {
+											connection.query(`UPDATE map SET uid = ${connection.escape(nowuser[0].id)}, sp = ${sp} WHERE Country = `+connection.escape(req.body.target), (err, rows, fields)=>{})
+											res.send(jsonsuccess(`Вам выпало: ${rand} и вы успешно захватили территорию "[${req.body.target}]"`, req.cookies.session, numbers));
+										}
 									} else {//Если владелец остается, но сила уменьшается
 										sp = befuser[0].sp-sp;
 										connection.query(`UPDATE map SET sp = ${connection.escape(sp)} WHERE Country = `+connection.escape(req.body.target), (err, rows, fields)=>{});
