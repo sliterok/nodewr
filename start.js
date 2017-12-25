@@ -588,7 +588,7 @@ app.post('/emoji', function (req, res) {
     req.body.emoji = req.body.emoji.replace(/[ ‎\s\n\r]+/gm,' ');
 	connection.query('SELECT id FROM users WHERE session = '+connection.escape(req.cookies.session), function(err, user, fields) {
 		if(!user[0]) return res.send('Неверная сессия!')
-		let winners = {13: 1, 648: 3, 675: 2, 945: 2, 1954: 1, 1231: 5, 806: 1, 908: 1, 2193: 1, 2242: 1},
+		let winners = {13: 1, 648: 3, 675: 2, 945: 2, 1954: 1, 1231: 5, 806: 1, 908: 1, 2193: 1, 2242: 1, 1667: 1},
 			keys = Object.keys(winners),
 			index = keys.indexOf(user[0].id.toString());
 		if(index < 0) res.send('Вы еще ни разу не захватили мир');
