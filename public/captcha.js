@@ -34,7 +34,6 @@ $(()=>{
 	$("#capt").click(function(e){
 	    if(!ccode) return alertify.error("Вы не выбрали территорию.");
 		if(!e.originalEvent.isTrusted) return;
-		openAd('click');
 		$.ajax({
 			type: 'POST',
 			url: '/roll',
