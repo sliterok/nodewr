@@ -216,15 +216,18 @@ app.post('/get', function (req, res) {
 	connection.query('SELECT Country, sp, uid FROM map', function(err, rows, fields) {
 		if (err) throw err;
 		let sendata = {
-			map: {},
-			players: {}
-		},
+				map: {},
+				players: {}
+			},
 			reqPlayers = {};
 
 		for(let i = 0; i<rows.length; i++)
 		{
 			reqPlayers[rows[i].uid] = true;
-			sendata.map[rows[i].Country] = {sp: rows[i].sp, uid: rows[i].uid}
+			sendata.map[rows[i].Country] = {
+				sp: rows[i].sp,
+				uid: rows[i].uid
+			}
 		}
 
 		reqPlayers = Object.keys(reqPlayers).join(', ');
@@ -683,16 +686,14 @@ app.get('/currf', function (req, res) {
 
 app.get('/getplayers', function (req, res) {
 	if(!IsJsonString(req.query.ids)) return res.sendStatus(500);
-	let ids = JSON.parse(req.query.ids);
-	let notCool = false;
+	let ids = JSON.parse(req.query.ids)
 	if(ids.length < 1) return res.sendStatus(500);
 	for(let i = 0; i<ids.length; i++){
-		let el = parseInt(ids[i]);
-		if(typeof el == 'number' && !isNaN(el)) continue;
-		else notCool = true;
+		let el = parseInt(ids[i])
+		if(typeof el != 'number' || !isNaN(el)) return res.sendStatus(500)
+		else ids[i] = el + ''
 	}
-	if(notCool) res.sendStatus(500);
-	else connection.query(`SELECT Color, name, id, emoji, imgur, fid FROM users WHERE id IN (${ids.join(', ')})`, function(err, players, fields) {
+	connection.query(`SELECT Color, name, id, emoji, imgur, fid FROM users WHERE id IN (${ids.join(', ')})`, function(err, players, fields) {
 		let rs = {};
 		if(!players) return res.send(rs);
 		for(let i = 0; i<players.length; i++){
