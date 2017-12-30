@@ -690,8 +690,8 @@ app.get('/getplayers', function (req, res) {
 	if(ids.length < 1) return res.sendStatus(500);
 	for(let i = 0; i<ids.length; i++){
 		let el = parseInt(ids[i])
-		if(typeof el != 'number' || !isNaN(el)) return res.sendStatus(500)
-		else ids[i] = el + ''
+		if(typeof el != 'number' || isNaN(el)) return res.sendStatus(500)
+		else ids[i] = el
 	}
 	connection.query(`SELECT Color, name, id, emoji, imgur, fid FROM users WHERE id IN (${ids.join(', ')})`, function(err, players, fields) {
 		let rs = {};
