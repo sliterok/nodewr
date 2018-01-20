@@ -895,11 +895,11 @@ app.get('/top', function (req, res) {
 });
 
 app.post('/setflag', function (req, res) {
+	req.body.imgur = req.body.imgur.replace('http://', 'https://');
 	if(!req.cookies.session) return res.send(jsonerror('Нет сессии!'));
-	if(!req.body.imgur) return res.send(jsonerror('Ошибка imgur!'));
+	if(!/^https:\/\/i.imgur.com\/\w{7}\.(jpg|png|mp4|gif|jpeg)$/.test(req.body.imgur)) return res.send(jsonerror('Ошибка imgur!'));
 	connection.query('SELECT id FROM users WHERE session = '+connection.escape(req.cookies.session), function(err, user, fields) {if (err) throw err;
 		if(!user[0]) return res.send('Неверная сессия!');
-		req.body.imgur = req.body.imgur.replace('http://', 'https://');
 		request({
 			method: 'HEAD',
 			uri: req.body.imgur
