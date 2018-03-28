@@ -12,6 +12,7 @@ const crypto = require('crypto'),
 	request = require('request'),
 	randomHex = require('random-hex'),
 	microtime = require('microtime-fast'),
+	url = require('url'),
 	app = express(),
 	port = 8000,
 	escape = require('escape-html'),
@@ -39,12 +40,19 @@ app.use((req, res, next)=>{
 });
 
 
+app.post('/*', (req, res, next) => {
+	let ref = req.headers.referer
+	if(ref && ['воро.рф', 'xn--b1ayah.xn--p1ai', 'worldroulette.ru'].indexOf(url.parse(ref).hostname) < 0) return res.send(403, 'Invalid origin')
+	else return next()
+})
+
+
 const limiter = new RateLimit({
 	windowMs: 2000, // 1 second
 	max: 1, // limit each IP to 5 requests per second
 	delayMs: 1000, // disable delaying - full speed until the max limit is reached
 	skip: function (req, res) {
-		console.log(req.path);
+		//console.log(req.path);
 		if(req.path == '/fcolor' || req.path == '/color') return false;
 		else return true;
 	}
@@ -520,7 +528,7 @@ app.post('/finvite', function (req, res) {
 		else if(adm[0].id == req.body.pid) res.send('Вы не можете пригласить себя!');
 		else connection.query('SELECT id, users, name FROM factions WHERE admin = '+connection.escape(adm[0].id), function(err, faction, fields) {
 			if(!faction[0]) res.send('Такой фракции не существует!');
-			else connection.query('SELECT invites, id, name FROM users WHERE id = '+connection.escape(req.body.pid), function(err, invguy, fields) {
+			else connection.query('SELECT invites, id, name, session FROM users WHERE id = '+connection.escape(req.body.pid), function(err, invguy, fields) {
 				if(!invguy[0]) return res.send('Такого игрока не существует');
 				let invites = jsParseIt(invguy[0].invites);
 				if(invites.indexOf(faction[0].id) > -1) return res.send('Вы уже приглашали этого игрока!');
@@ -591,7 +599,7 @@ app.post('/emoji', function (req, res) {
     req.body.emoji = req.body.emoji.replace(/[ ‎\s\n\r]+/gm,' ');
 	connection.query('SELECT id FROM users WHERE session = '+connection.escape(req.cookies.session), function(err, user, fields) {
 		if(!user[0]) return res.send('Неверная сессия!')
-		let winners = {13: 1, 648: 3, 675: 2, 945: 2, 1954: 1, 1231: 5, 806: 1, 908: 1, 2193: 1, 2242: 1, 1667: 1},
+		let winners = {13: 1, 648: 3, 675: 2, 945: 2, 1954: 1, 1231: 5, 806: 1, 908: 2, 2193: 1, 2242: 1, 1667: 1, 2481: 1},
 			keys = Object.keys(winners),
 			index = keys.indexOf(user[0].id.toString());
 		if(index < 0) res.send('Вы еще ни разу не захватили мир');

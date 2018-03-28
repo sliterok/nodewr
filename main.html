@@ -93,16 +93,14 @@
 			$('#menu').css('height', '');
 		} else {
 			var navbarh = $('.navbar').outerHeight();
-			var adh = $('#topAd').height();
-			$('#map').height('calc(100% - '+navbarh+'px - '+adh+'px)');
+			$('#map').height('calc(100% - '+navbarh+'px)');
 			$('#map,#mapshadow').height('calc(100% - '+navbarh+'px)')
 			$('#menu').css('height', '18em');
-			$('#chat').css('height', 'calc(100% - 18em - 11px - '+adh+'px)');
+			$('#chat').css('height', 'calc(100% - 18em - 11px)');
 			var chatty = $('#chatty').height();
 			var chat = $('#chat').height();
 			var entirechat = chat-chatty;
 			$('#chatwindow').css('height', entirechat+'px');
-			//$('#chatwindow').css('height', ($(window).height() - $('#menu').height() - $('#chatty').height() - 10));
 		};
 	}
 	window.onresize = resize;
@@ -249,9 +247,10 @@
 			<div class="text-center"><b>(5)</b> <span class="chatname 1231" data-name-color="0"></span></div>
 			<div class="text-center"><b>(1)</b> <span class="chatname 1954" data-name-color="2"></span></div>
 			<div class="text-center"><b>(1)</b> <span class="chatname 806" data-name-color="3"></span></div>
-			<div class="text-center"><b>(1)</b> <span class="chatname 908" data-name-color="3"></span></div>
+			<div class="text-center"><b>(2)</b> <span class="chatname 908" data-name-color="3"></span></div>
 			<div class="text-center"><b>(1)</b> <span class="chatname 2193" data-name-color="3"></span></div>
 			<div class="text-center"><b>(1)</b> <span class="chatname 2242" data-name-color="3"></span></div>
+			<div class="text-center"><b>(1)</b> <span class="chatname 2481" data-name-color="3"></span></div>
 		</p>
 		<h5 class="text-center">Наши друзья</h5>
 		<div class="text-center"><a target="_blank" href="http://parolja.net/">Пароля.нет</a></div>

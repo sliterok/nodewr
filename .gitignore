@@ -3,5 +3,6 @@ sql.js
 captchasecret.js
 passsecret.js
 chat.json
+package-lock.json
 # A lot of small images
 public/flags/*
