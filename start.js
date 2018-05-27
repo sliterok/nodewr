@@ -4,6 +4,7 @@ const crypto = require('crypto'),
 	express = require('express'),
 	http2 = require('http2'),
 	https = require('https'),
+	http = require('http'),
 	fs = require('fs'),
 	bodyParser = require('body-parser'),
 	cookieParser = require('cookie-parser'),
@@ -18,6 +19,7 @@ const crypto = require('crypto'),
 	escape = require('escape-html'),
 	geoip = require("geoip-lite"),
 	RateLimit = require('express-rate-limit'),
+	  httpProxy = require('http-proxy'),
 	cloudflare = require('cloudflare-express');
 
 let connection = require('./sql.js'),
@@ -26,7 +28,7 @@ let connection = require('./sql.js'),
 	online = [],
 	iptime = [];
 
-require('express-http2-workaround')({ express:express, http2:http2, app:app });
+//require('express-http2-workaround')({ express:express, http2:http2, app:app });
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser());
@@ -39,6 +41,12 @@ app.use((req, res, next)=>{
 	else return res.sendStatus(500);
 });
 
+var proxy = httpProxy.createProxyServer();
+
+/*http.createServer(function(req, res) {
+	proxy.web(req, res, {target: 'http://t.me:80'});
+}).listen(8080);*/
+
 
 app.post('/*', (req, res, next) => {
 	let ref = req.headers.referer
@@ -48,12 +56,12 @@ app.post('/*', (req, res, next) => {
 
 
 const limiter = new RateLimit({
-	windowMs: 2000, // 1 second
-	max: 1, // limit each IP to 5 requests per second
+	windowMs: 20000, // 2 sec
+	max: 1, // limit each IP to 1 requests per second
 	delayMs: 1000, // disable delaying - full speed until the max limit is reached
 	skip: function (req, res) {
-		//console.log(req.path);
-		if(req.path == '/fcolor' || req.path == '/color') return false;
+		console.log(req.path);
+		if(req.path == '/fcolor' || req.path == '/color' || req.path == '/fremove' || req.path == '/fcreate') return false;
 		else return true;
 	}
 });
@@ -104,7 +112,7 @@ handleDisconnect();
 var transporter = nodemailer.createTransport('smtps://adm%40worldroulette.ru:nodewr@smtp.yandex.ru');
 
 app.get('/', function (req, res) {
-	res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+	res.setHeader('Cache-Control', 'public, max-age=7200');
 	if(req.cookies.firstTime != '1' && typeof res.push === 'function'){
 		let filenames = ['captcha.js', 'alertify.js', 'chat.css', 'chat.js', 'font-awesome.min.css', 'fuckadblock.js', 'jquery-jvectormap-2.0.3.css', 'jquery-jvectormap-2.0.3.min.js', 'jquery-jvectormap-world-mill-ru.js', 'jquery.js', 'map.js', 'spaceengine.jpg', 'styles.css', 'assets/wr new.png', 'alertify.js', 'socket.io/socket.io.js', 'bootstrap/bootstrap.min.css', 'bootstrap/bootstrap.min.js', 'twemoji.min.js', 'jscolor.min.js', 'jquery.mobile.custom.min.js', 'factions.js'];
 		filenames.forEach(el=>{
@@ -115,18 +123,18 @@ app.get('/', function (req, res) {
 			push.writeHead(200);
 			fs.createReadStream(__dirname + '/public/'+el).pipe(push);
 		});
-		res.setHeader('Set-Cookie', 'firstTime=1; expires=Fri, 31 Dec 9999 23:59:59 GMT');
 	}
-	if(req.cookies.session){
-		connection.query('SELECT session FROM users WHERE session = '+connection.escape(req.cookies.session), function(err, rows, fields) {if (err) throw err;
-			if(rows[0] && rows[0].session == req.cookies.session){res.sendFile('main.html' , { root : __dirname});}
-			else{
-				res.cookie('session', '', { maxAge: 0, httpOnly: true });
-				res.sendFile('authme.html' , { root : __dirname});
-			}
-		});
-	} else {
-		res.sendFile('authme.html' , { root : __dirname});
+	if(req.cookies.session) connection.query('SELECT session FROM users WHERE session = '+connection.escape(req.cookies.session), function(err, rows, fields) {
+		if (err) throw err;
+		if(rows[0] && rows[0].session == req.cookies.session) res.sendFile('main.html' , { root : __dirname})
+		else {
+			res.cookie('session', '', { maxAge: 0, httpOnly: true })
+			if(/Mobi/i.test(req.get('User-Agent')) || true) res.sendFile('authmemobi.html' , { root : __dirname});
+			else res.sendFile('authme.html' , { root : __dirname});
+		}
+	});
+	else {
+		res.sendFile('authmemobi.html', { root : __dirname});
 	}
 });
 
@@ -140,7 +148,7 @@ app.post('/register', function (req, res) {
     req.body.name = req.body.name.replace(/[ ‎\s\n\r]+/g,' ');
 	if(req.body.name == ' ' || req.body.name == '') err = 'Пустое имя';
 	if(err) res.send({'status': false, 'data': err});
-	else request.post({url:'https://www.google.com/recaptcha/api/siteverify', form: {secret: CAPTCHASECRET, response: req.body.captcha, remoteip: req.cf_ip}}, function(err,httpResponse,body){
+	else request.post({url:'https://www.google.com/recaptcha/api/siteverify', form: {secret: CAPTCHASECRET.login, response: req.body.captcha, remoteip: req.cf_ip}}, function(err,httpResponse,body){
 		if(!err & JSON.parse(body).success == true) connection.query('SELECT * FROM users WHERE login = '+connection.escape(req.body.login), function(err, rows, fields) {if (err) throw err;
 				if(rows[0]) return res.send({'status': false, 'data': 'Login already taken!'});
 				connection.query('SELECT * FROM users WHERE name = '+connection.escape(req.body.name), function(err, rows, fields) {if (err) throw err;
@@ -180,7 +188,7 @@ app.post('/login', (req, res) => {
 	else if(!req.body.pass) err = "Вы не ввели пароль"
 	else if(!req.body.captcha) err = "Вы не ввели капчу"
 	if(err) return res.send({'status': false, 'data': err})
-	request.post({url:'https://www.google.com/recaptcha/api/siteverify', form: {secret: CAPTCHASECRET, response: req.body.captcha, remoteip: req.cf_ip}}, function(err, httpResponse, body){
+	request.post({url:'https://www.google.com/recaptcha/api/siteverify', form: {secret: CAPTCHASECRET.login, response: req.body.captcha, remoteip: req.cf_ip}}, function(err, httpResponse, body){
 		if(!err & JSON.parse(body).success == true) connection.query('SELECT pass FROM users WHERE login = '+connection.escape(req.body.login), function(err, rows, fields) {if (err) throw err;
 				if(!rows[0]) return res.send({'status': false, 'data': 'Пользователь с таким никнеймом не найден!'})
 				let hash = crypto.createHmac('sha512', PASSSECRET);
@@ -209,17 +217,16 @@ app.get('/confirm', function (req, res) {
 		}
 	})
 })
-/*
+
 app.post('/logout', function (req, res) {
-	if(!req.body.session || !req.body.login){res.send('No field(s)!');}
-	else{
-		connection.query('UPDATE users SET session = \'\' WHERE login = '+connection.escape(req.body.login)+'AND session = '+connection.escape(req.body.session), function(err, rows, fields) {if (err) throw err;});
-		if(rows[0] && rows[0].session == req.cookies.session){
-			res.cookie('session', '', { maxAge: 0, httpOnly: true });
-			res.sendFile('authme.html' , { root : __dirname});
-		}
-	}
-});*/
+	if(!req.cookies.session || !req.body.id) res.send('Ошибка')
+	else connection.query('UPDATE users SET session = \'\' WHERE id = '+connection.escape(req.body.id)+'AND session = '+connection.escape(req.cookies.session), function(err, rows, fields) {
+		if (err) throw err;
+		res.cookie('session', '', { maxAge: 0, httpOnly: true });
+		res.sendStatus(200)
+	});
+});
+
 app.post('/get', function (req, res) {
 	connection.query('SELECT Country, sp, uid FROM map', function(err, rows, fields) {
 		if (err) throw err;
@@ -227,16 +234,30 @@ app.post('/get', function (req, res) {
 				map: {},
 				players: {}
 			},
+			RU = ['RU-CE', 'RU-FE', 'RU-NC', 'RU-NW', 'RU-SI', 'RU-SO', 'RU-UR', 'RU-VO'],
+			RUowners = {'13': 0},
+			best = 13,
 			reqPlayers = {};
-
+		
 		for(let i = 0; i<rows.length; i++)
 		{
-			reqPlayers[rows[i].uid] = true;
-			sendata.map[rows[i].Country] = {
-				sp: rows[i].sp,
-				uid: rows[i].uid
+			let item = rows[i];
+			reqPlayers[item.uid] = true;
+			
+			
+			if(RU.indexOf(item.Country) > -1) {
+				if(RUowners[item.uid]) RUowners[item.uid] = RUowners[item.uid] + item.sp
+				else RUowners[item.uid] = item.sp
+				
+				if(RUowners[item.uid] > RUowners[best] || Object.keys(RUowners).length < 1) best = item.uid;
+				console.log(RUowners, RUowners[item.uid], RUowners[best]);
 			}
+			sendata.map[item.Country] = {sp: item.sp, uid: item.uid}
 		}
+		
+		
+		
+		sendata.map['RU'] = {sp: RUowners[best], uid: best}
 
 		reqPlayers = Object.keys(reqPlayers).join(', ');
 		connection.query(`SELECT Color, name, id, emoji, imgur, fid FROM users WHERE id IN (${reqPlayers})`, function(err, players, fields) {
@@ -260,10 +281,16 @@ app.post('/getenergy', function (req, res) {
 
 app.post('/getthis', function (req, res) {
 	if(!req.cookies.session) res.send('0')
-	else connection.query('SELECT id FROM users WHERE session = '+connection.escape(req.cookies.session), function(err, rows, fields) {
-		if (err) throw err;
-		if(!rows[0]) res.send('Ошибка сессии!')
-		else res.send(rows[0].id+'');
+	else connection.query('SELECT Color, name, id, emoji, imgur, fid FROM users WHERE session = '+connection.escape(req.cookies.session), function(err, players, fields) {
+		let rs = {};
+		if(!players) return res.send(rs);
+		let me = players[0]
+		me.name += me.emoji;
+		delete me.emoji;
+		if(!me.imgur) delete me.imgur;
+		if(!me.fid) delete me.fid;
+		rs[me.id] = me;
+		res.send(rs);
 	});
 });
 
@@ -298,7 +325,6 @@ app.post('/color', function (req, res) {
 	})
 });
 
-let maxsp = 3;
 app.post('/roll', function (req, res) {
 	let ip = sessionip[req.cookies.session];
 	let geo = geoip.lookup(ip);
@@ -307,7 +333,7 @@ app.post('/roll', function (req, res) {
 	else if(!req.cookies.session) res.send(jsonerror('Нет сессии!'));
 	else if(!req.body.target) res.send(jsonerror('Нет цели!'));
 	else if( iptime.indexOf(sessionip[req.cookies.session]) > -1) res.send(jsonerror('Подождите немного!'));
-	else request.post({url:'https://www.google.com/recaptcha/api/siteverify', form: {secret: CAPTCHASECRET, response: req.body.captcha, remoteip: req.cf_ip.slice(7)}}, function(err,httpResponse,body){
+	else request.post({url:'https://www.google.com/recaptcha/api/siteverify', form: {secret: CAPTCHASECRET.default, response: req.body.captcha, remoteip: req.cf_ip.slice(7)}}, function(err,httpResponse,body){
 		connection.query(`UPDATE users SET power = ${(JSON.parse(body).success ? '15' : 'power')} WHERE session = ${connection.escape(req.cookies.session)}`, function(err, rows, fields) {
 			connection.query('SELECT power FROM users WHERE session = '+connection.escape(req.cookies.session), function(err, rows, fields) {
 				if(!rows[0]) res.send(jsonerror('Неверная сессия!'));
@@ -315,23 +341,17 @@ app.post('/roll', function (req, res) {
 				else connection.query('SELECT time - '+Date.now()+' AS time FROM `users` WHERE session = '+connection.escape(req.cookies.session), function(err, timeres) {
 					if(timeres[0].time > -5000) return res.send(jsonerror('Подождите немного!'));
 					let rand = pad(getRandomInt(1, 10000), 5)//rand число от 0 до 10000 pad - распидорасить его впереди 4 нул
-					let sp, numbers;
-					if(checkdits(rand.toString().slice(-4).split('')) == true){//если это число кончается на 4 равных цифры
-						sp = 4;
-						numbers = 4;
-					}
-					else if(checkdits(rand.toString().slice(-3).split('')) == true){//если это число кончается на 3 равных цифры
-						sp = 2;
-						numbers = 3;
-					}
-					else if(checkdits(rand.toString().slice(-2).split('')) == true){//если это число кончается на 2 равных цифры
-						sp = 1;
-						numbers = 2;
+					let sp, numbers = checkdigits(rand);
+					if(numbers){//если это число кончается на 4 равных цифры
+					   sp = Math.pow(2, numbers - 1)
 					}
 					else
 					{
-						return connection.query('SELECT sp, uid FROM map WHERE Country = '+connection.escape(req.body.target), function(err, befuser, fields) {//Взять из бд инфу о владельце территории
+						return connection.query('SELECT sp, uid, area FROM map WHERE Country = '+connection.escape(req.body.target), function(err, befuser, fields) {//Взять из бд инфу о владельце территории
 							connection.query('SELECT name, id, fid FROM users WHERE session = '+connection.escape(req.cookies.session), function(err, nowuser, fields) {//Взять из бд инфу о текщуем пользователе
+								let maxsp = Math.ceil((-Math.pow((befuser[0].area / 17098242) - 1, 2) + 1) * 10) //пиздец, вот график y = -(x-1)^2 + 1
+								if(maxsp < 3) maxsp = 3; //минимальная максимальная сила
+								
 								if(befuser[0].sp == maxsp && befuser[0].uid == nowuser[0].id) res.send(jsonnote('Территория уже улучшена до максимального уровня'));
 								else res.send(jsonfail('Вам выпало '+rand, req.cookies.session));
 							});
@@ -339,7 +359,7 @@ app.post('/roll', function (req, res) {
                     }//Если у этого числа нет одинаковых чисел
 					connection.query('SELECT name, id, fid FROM users WHERE session = '+connection.escape(req.cookies.session), function(err, nowuser, fields) {//Взять из бд инфу о текщуем пользователе
 						if(!nowuser || !nowuser[0]) res.send(jsonerror('Неверная сессия'))//Нет такой сессии(?!)
-						else connection.query('SELECT sp, uid FROM map WHERE Country = '+connection.escape(req.body.target), function(err, befuser, fields) {//Взять из бд инфу о владельце территории
+						else connection.query('SELECT sp, uid, area FROM map WHERE Country = '+connection.escape(req.body.target), function(err, befuser, fields) {//Взять из бд инфу о владельце территории
 							if(!befuser[0]) return res.send(jsonerror('Такой территории не существует'));//Нет такой терры(?!)
 							connection.query('SELECT session, fid FROM users WHERE id = '+connection.escape(befuser[0].uid), function(err, befsess, fields) {//Взять из бд инфу о сессии пред пользователя для уведомления
 								if((befuser[0].uid != nowuser[0].id) && ((befsess[0].fid != nowuser[0].fid && (nowuser[0].fid || befsess[0].fid)) || (befsess[0].fid == 0 && nowuser[0].fid == 0)))
@@ -372,6 +392,9 @@ app.post('/roll', function (req, res) {
 									io.to(socketipid[sessionip[befsess[0].session]]).emit('attack', `${nowuser[0].name} атаковал вашу территорию "[${req.body.target}]"`);
 									/* УВЕДОМЛЕНИЯ */
 								} else { //Если один клан
+									let maxsp = Math.ceil((-Math.pow((befuser[0].area / 17098242) - 1, 2) + 1) * 10) //пиздец, вот график y = -(x-1)^2 + 1
+									if(maxsp < 3) maxsp = 3; //минимальная максимальная сила
+									
 									if(befuser[0].sp == maxsp) return res.send(jsonnote('Территория уже улучшена до максимального уровня'));
 									sp = befuser[0].sp+sp;
 									if(sp > maxsp) sp = maxsp;
@@ -599,7 +622,7 @@ app.post('/emoji', function (req, res) {
     req.body.emoji = req.body.emoji.replace(/[ ‎\s\n\r]+/gm,' ');
 	connection.query('SELECT id FROM users WHERE session = '+connection.escape(req.cookies.session), function(err, user, fields) {
 		if(!user[0]) return res.send('Неверная сессия!')
-		let winners = {13: 1, 648: 3, 675: 2, 945: 2, 1954: 1, 1231: 5, 806: 1, 908: 2, 2193: 1, 2242: 1, 1667: 1, 2481: 1},
+		let winners = {13: 1, 648: 3, 675: 2, 945: 2, 1954: 1, 1231: 5, 806: 1, 908: 2, 2193: 1, 2242: 1, 1667: 1, 2481: 1, 2510: 1, 1690: 1, 2534: 1},
 			keys = Object.keys(winners),
 			index = keys.indexOf(user[0].id.toString());
 		if(index < 0) res.send('Вы еще ни разу не захватили мир');
@@ -716,13 +739,17 @@ app.get('/getplayers', function (req, res) {
 	})
 });
 
-function checkdits(arr){
-	var res = true;
-	for(var i = 0; i<arr.length-1; i++)
-	{
-		if(arr[i+1] != arr[i]){res = false}
-	}
-	return res;
+function checkdigits(num){
+	num = num.toString()
+	let l = num.length - 1,
+		combo = 0;
+	if(num[l] == num[l-1]) combo = 1;
+	if(combo == 1 && num[l] == num[l-2]) combo = 2;
+	if(combo == 2 && num[l] == num[l-3]) combo = 3;
+	if(combo == 3 && num[l] == num[l-4]) combo = 4;
+	if(combo == 4 && num[l] == num[l-5]) combo = 5;
+	if(combo == 5 && num[l] == num[l-6]) combo = 6;
+	return combo;
 }
 
 function pad(num, size) {
@@ -843,7 +870,7 @@ app.post('/write', function (req, res) {
 	})
 })
 
-app.post('/chat', function (req, res) {
+app.get('/chat', function (req, res) {
 	getid(req.cookies.session, function(uid){
 		let id = uid || -1;
 		fs.readFile('chat.json', function(err, data) {
@@ -851,7 +878,8 @@ app.post('/chat', function (req, res) {
 			let content = JSON.parse(data),
 				keys = Object.keys(content),
 				index;
-			if(req.body.last) index = keys.indexOf(req.body.last);
+			
+			if(req.query.last) index = keys.indexOf(req.query.last);
 			else index = 0;
 			let newobj = {
 				chat: {},
@@ -929,7 +957,8 @@ app.post('/setflag', function (req, res) {
 
 var LEX = require('greenlock-express');
 var lex = LEX.create({
-	server: 'https://acme-v01.api.letsencrypt.org/directory',
+	server: 'https://acme-v02.api.letsencrypt.org/directory',
+	version: 'draft-11',
 	challenges: {
 		'http-01': require('le-challenge-fs').create({ webrootPath: '/var/www/html/.well-known/acme-challenge' })
 	},
@@ -949,7 +978,8 @@ function approveDomains(opts, certs, cb) {
 
 	cb(null, { options: opts, certs: certs });
 }
-http2.createServer(lex.httpsOptions, lex.middleware(app)).listen(443);
+//console.log(lex.httpsOptions)
+https.createServer(lex.httpsOptions, lex.middleware(app)).listen(443);
 var server = https.createServer(lex.httpsOptions).listen(444);
 
 var io = require('socket.io')(server);

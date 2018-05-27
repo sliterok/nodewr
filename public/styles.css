@@ -5,7 +5,7 @@
     src: url(/fonts/bignoodletoo.woff) format('woff'),url(/fonts/bignoodletoo.ttf) format('truetype'),url(/fonts/bignoodletoo.svg#bignoodletoo/bignoodletoo) format('svg')
 }
 
-.auth {
+.menu {
 	z-index: 6;
 	background-color: rgba(55,58,60,.95);
 	position: fixed;
@@ -47,14 +47,9 @@
 	min-width: 300px;
 }
 
-.regbtn {
+.title {
 	cursor: pointer;
-	color: aaa;
-	font-family: 'Montserrat', sans-serif;
-}
-.logbtn {
-	cursor: pointer;
-	color: aaa;
+	color: #aaa;
 	font-family: 'Montserrat', sans-serif;
 }
 

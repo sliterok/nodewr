@@ -5,12 +5,38 @@ let auid,
 	map,
 	cdata,
 	players = {},
-	prev,
-	previousselect,
 	ccode,
 	online,
 	plTop,
-	mapDisabled = false;
+	mapDisabled = false,
+	hitsound = new Audio('/assets/hit.wav');
+
+function init(){
+
+	let pgPromise = new Promise(resolve=>{
+		$(document.body).ready(()=>{
+			resolve();
+		})
+	})
+
+	let pArr = [reloadFactions(), reloadMap(true), pgPromise, reloadOnline(), reloadTop(true), getmsg(true), reloadThis()];
+	Promise.all(pArr).then(()=>{
+		deployMap('world_mill', 'start')
+		updateOnline()
+		updateMap()
+		updateTop()
+		updatePlayers()
+		pulltochat()
+		getcurrf()
+		let conq = []
+		$('#faq .chatname').each((i, el) => {
+			if(Object.keys(players).indexOf(el.classList[1]) < 0) conq.push(parseInt(el.classList[1]))
+		})
+		reloadPlayers(conq)
+	});
+}
+
+init();
 
 /**
  * Apply newly downloaded player data into global variable
@@ -32,11 +58,21 @@ function applyPlayers(pl){
  */
 function reloadPlayers(ids, cb)
 {
+	
 	return $.get(
 		"/getplayers?ids="+JSON.stringify(ids), function(data){
 			applyPlayers(data);
 			if(typeof cb == 'function') cb();
 			else if(!cb) updatePlayers();
+	}).promise();
+}
+
+function reloadThis(){
+	return $.post("/getthis", function(data) {
+		if(Object.keys(data).length > 0) {
+			applyPlayers(data);
+			me = data[Object.keys(data)[0]].id;
+		} else return location.reload()
 	}).promise();
 }
 
@@ -52,40 +88,8 @@ function updatePlayers(cb)
 		$('.chatname.'+player.id).html(twemoji.parse(player.name));
 		$('.chatcolor.'+player.id).css('background-color', factions[player.fid] ? factions[player.fid].color : player.Color);
 	}
-	if($('#chatwindow').children().length == 0 && $('#chatwindow').length > 0){
-		if(!me) getthis(getmsg);
-		else getmsg();
-	}
 	if(cb) cb();
 }
-
-
-$.post("/getthis", function(data) {
-	if(data == 'Ошибка сессии!' && decodeURIComponent(document.cookie).split(';').indexOf('session') > -1) return location.reload()
-	else if(data != 'Ошибка сессии!') me = data;
-	else me = 0;
-
-	let pgPromise = new Promise(resolve=>{
-		$(document.body).ready(()=>{
-			resolve();
-		})
-	})
-
-	let pArr = [reloadFactions(), reloadPlayers([me, 675, 945, 648, 1231, 1954, 806, 908, 2193, 2242], true), reloadMap(true), pgPromise];
-	if(!prev){
-		pArr.push(reloadOnline(), reloadTop(true));
-	}
-	Promise.all(pArr).then(()=>{
-		if(prev) updateMap();
-		else {
-			getcurrf();
-			updateOnline();
-			updateMap();
-			updateTop();
-			updatePlayers();
-		}
-	});
-});
 
 /**
  * Sets percents and removes main loading animation
@@ -127,17 +131,11 @@ function setmainloader(percent, first){
 var timeout;
 var moving;
 number = 0;
-$(()=>{
-	console.timeStamp('pageload');
-	$('#takescreen').click(function(e){
-		let ev = $.Event("keyup", { keyCode: 44});
-		$("body").trigger(ev);
-	});
-	prev = $('#map').hasClass('prev');
-	if($(window).width() < 1199) $('#map').height('70%');
-	let hitsound = new Audio('/assets/hit.wav');
+
+function deployMap(projection, start){
+	if(map && map.remove) map.remove()
 	map = new jvm.Map({
-		map: 'world_mill',
+		map: projection,
 		regionsSelectable: true,
 		backgroundColor: 'transparent',
 		regionsSelectableOne: true,
@@ -158,8 +156,10 @@ $(()=>{
 		zoomButtons: false,
 		onRegionSelected: function (event, region, isSelected, Arrselected)
 		{
-			if(Arrselected[0] && !prev)
-			{
+			if(Arrselected[0] == 'RU') {
+				deployMap('ru_fd_mill');
+				$('#map .leave').show();
+			} else if(Arrselected[0]) {
 				ccode = Arrselected[0];
 				let uid = cdata[ccode].uid,
 					enemy = players[uid],
@@ -180,15 +180,13 @@ $(()=>{
 				hitsound.volume = audioenabled/1000;
 				hitsound.currentTime = 0;
 				hitsound.play();
-			} else if(prev){
-				map.clearSelectedRegions();
 			}
 		},
 		onRegionTipShow: function (event, label, code)
 		{
 			let uid = cdata[code].uid;
 			let player = players[uid];
-			label.html(`<div style="text-align: center">${player.imgur ? `<img class="player-flag" src="${player.imgur}">` : ''}<div class="player-profile">${label.html()} <span class="flag-icon flag-icon-${code}"></span> ${code}<br> <span data-name-color="${Math.floor((uid % 10)/2)}">${twemoji.parse(player.name)} [${uid}]</span></br>${factions[player.fid] ? `Фракция: ${factions[player.fid].name}</br>` : ''} Сила: ${romanize(cdata[code].sp)}</div></div>`);
+			label.html(`<div style="text-align: center">${player.imgur ? `<img class="player-flag" src="${player.imgur.replace('"', '')}">` : ''}<div class="player-profile">${label.html()} <span class="flag-icon flag-icon-${code.length < 3 ? code : code.substr(0, 2)}"></span> ${code}<br> <span data-name-color="${Math.floor((uid % 10)/2)}">${twemoji.parse(player.name)} [${uid}]</span></br>${factions[player.fid] ? `Фракция: ${factions[player.fid].name}</br>` : ''} Сила: ${romanize(cdata[code].sp)}</div></div>`);
 		}
 	});
 	$('#map').hide();
@@ -198,7 +196,8 @@ $(()=>{
 			return false;
 		}
 	})
-});
+	if(!start) updateMap();
+}
 
 /**
  * Download map from the server
@@ -247,7 +246,6 @@ function updateMap() {
 			}
 		}
 	}
-
 	$('#map').show();
 	map.updateSize();
 	setmainloader(100);

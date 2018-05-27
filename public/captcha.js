@@ -55,24 +55,6 @@ $(()=>{
 					rollsuccsound.volume = audioenabled/500;
 					rollsuccsound.currentTime = 0;
 					rollsuccsound.play();
-					if(data.numbers) {
-						let words = {
-							'2': 'DOUBLE!',
-							'3': 'TRIPLE!',
-							'4': 'QUADRIPLE!',
-							'5': 'PENTIPLE!'
-						};
-						let alert = $(`<div class="overwatch-alert"><span class="neon">${words[data.numbers]}</span></div>`).appendTo(document.body);
-						let aud = $('<audio><source src="/assets/numbers.ogg" type="audio/ogg"></audio>').appendTo(document.body);
-						aud[0].volume = audioenabled/500;
-						setTimeout(e => {
-							aud[0].play();
-						}, 400);
-						setTimeout(e => {
-							alert.remove();
-							aud.remove();
-						}, 4000);
-					}
 				}
 				else if(data.result == 'note') alertify.log(parseCountry(data.data));
 				else if(data.result == 'fail'){
@@ -188,18 +170,22 @@ $(()=>{
 	});
 	$('#menubtn').click(function(event) {
 		event.stopPropagation();
-		$('.auth').fadeOut(500);
-		$('#mmenu').fadeIn(500);
+		$(".menu").fadeOut(500)
+		$("#mmenu").fadeIn(500)
 	});
 	$('#fbtn').click(function(event) {
 		event.stopPropagation();
-		$('.auth').fadeOut(500);
-		$('#fmenu').fadeIn(500);
+		$(".menu").fadeOut(500)
+		$("#fmenu").fadeIn(500)
 	});
 	$('#faqbtn').click(function(event) {
 		event.stopPropagation();
-		$('.auth').fadeOut(500);
-		$('#faq').fadeIn(500);
+		$(".menu").fadeOut(500)
+		$("#faq").fadeIn(500)
+	});
+	$('.menu .back').click(function(event) {
+		event.stopPropagation();
+		$(".menu").fadeOut(500)
 	});
 	$('#mmenu').click(function(event) {
 		event.stopPropagation();
@@ -215,9 +201,7 @@ $(()=>{
 			counter++;
 		}
 		if($('#mmenu,#faq,#fmenu').has($(e.target)).length < 1 && tgt.next().length > 0){
-			$('#mmenu').fadeOut(500);
-			$('#faq').fadeOut(500);
-			$('#fmenu').fadeOut(500);
+			$(".menu").fadeOut(500)
 		}
 	});
 	$('#newcolor').keyup(()=>{
@@ -335,6 +319,25 @@ $(()=>{
 			alertify.error('Вы не выбрали файл!');
 		}
 	});
+	$('#logout').click(e => {
+		if(me) $.ajax({
+	        type: 'POST',
+			url: '/logout',
+	        contentType: "application/json",
+	        dataType:'json',
+			data: JSON.stringify(
+			{
+				id: me
+			}),
+			success: function(data){
+				location.reload();
+			},
+			error: function(data){
+				location.reload();
+			}
+		});
+		else location.reload()
+	})
 })
 function getcurrf(){
 	$.ajax({
@@ -478,13 +481,16 @@ if (typeof(Storage) !== "undefined") {
 
 function getenergy()
 {
-	$.post("/getenergy", data=>{
-		if(data == 'Wrong session!'){alertify.error(data);}
-		if(data > 0) $('#captcha').css('display', 'none');
-		else $('#captcha').css('display', '');
-		if(typeof grecaptcha !== 'undefined' && grecaptcha.getResponse() != '') grecaptcha.reset();
+	$.post("/getenergy", data => {
+		if(data > 0) $('#captcha').css('display', 'none')
+		else if (data == 0) {
+			$('#captcha').css('display', '')
+			if(grecaptcha && grecaptcha.reset) grecaptcha.reset();
+		}
+		else alertify.error(data)
 	});
 };
+
 socket.on('attack', function(msg){
 	alertify.error([parseCountry(msg)]);
 });
@@ -498,7 +504,7 @@ socket.on('invite', function(msg){
 socket.on('give', function(msg){
 	alertify.success([parseCountry(msg)]);
 });
-socket.on('online', data=>{
+socket.on('online', data => {
 	online = data;
 	updateOnline();
 });
@@ -521,11 +527,16 @@ function reloadOnline(cb){
 }
 
 function updateOnline(){
-	$('#online').text(online.length).parent().off('mousemove mouseleave').mouseleave(rmPMenu).mousemove((e)=>{
+	$('#online').text(online.length)
+	//return false; //highload fix
+	$('#online').parent().off('mousemove mouseleave').mouseleave(rmPMenu).mousemove((e)=>{
 		let tooltip = $('.player-tooltip').html('');
 		for(let i = 0; i<online.length; i++){
-			let pid = online[i];
-			tooltip.append(`<div>${twemoji.parse(players[pid].name)}</div>`);
+			let id = online[i];
+			if(players[id]) tooltip.append(`<div>${twemoji.parse(players[id].name)}</div>`);
+			else reloadPlayers([id], function() {
+				tooltip.append(`<div>${twemoji.parse(players[id].name)}</div>`);
+			});
 		}
 		let x = e.pageX - tooltip.outerWidth()/2,
 			y = e.pageY + 20;
@@ -543,7 +554,13 @@ function updateOnline(){
 }
 
 function parseCountry(msg){
-	return msg.replace(/\[[a-z]{2}\]/gi, function(a){
-		return map.regions[a.replace(/[\[\]]/gi, '')].config.name;
+	let r = msg;
+	console.log(msg);
+	r = msg.replace(/\[[a-z]{2}\]/gi, function(a){
+		return jvm.Map.maps.world_mill.paths[a.replace(/[\[\]]/gi, '')].name
 	})
+	r = r.replace(/\[[a-z\-]{5}\]/gi, function(a){
+		return jvm.Map.maps.ru_fd_mill.paths[a.replace(/[\[\]]/gi, '')].name
+	})
+	return r;
 }

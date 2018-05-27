@@ -27,18 +27,20 @@
 	<!--Bless the God it's ended-->
 
 
-	<link rel="stylesheet" href="/font-awesome.min.css">
+	<!--<link rel="stylesheet" href="/font-awesome.min.css">-->
+	<script defer src="https://use.fontawesome.com/releases/v5.0.13/js/all.js" integrity="sha384-xymdQtn1n3lH2wcu0qhcdaOpQwyoarkgLVxC/wZ5q7h9gHtxICrpcaSUfygqZGOe" crossorigin="anonymous"></script>
 	<link rel="stylesheet" href="/bootstrap/bootstrap.min.css">
 	<link href="https://fonts.googleapis.com/css?family=Montserrat:700|Roboto&subset=cyrillic" rel="stylesheet">
 	<link rel="stylesheet" href="/jquery-jvectormap-2.0.3.css" type="text/css" media="screen" />
-	<link rel="stylesheet" type="text/css" href="styles.css">
+	<!--<link rel="stylesheet" type="text/css" href="styles.css">-->
+	<link rel="stylesheet" type="text/css" href="newstyles.css">
 	<link rel="stylesheet" type="text/css" href="flag-icon.min.css">
 
-	<script src="/twemoji.min.js"></script>
+	<script src="https://twemoji.maxcdn.com/2/twemoji.min.js?2.7"></script>
 	<script src="/jquery.js"></script>
 	<script src="/jquery.mobile.custom.min.js"></script>
-	<script src="https://cdn.rawgit.com/eligrey/FileSaver.js/master/FileSaver.min.js"></script>
-	<script src="socket.io/socket.io.js"></script>
+	<!--<script src="https://cdn.rawgit.com/eligrey/FileSaver.js/master/FileSaver.min.js"></script>-->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 	<script>
 	let socket = io('https://socket.worldroulette.ru:444', {secure: true});
 	$('#no-connection').css('display', 'none');
@@ -49,17 +51,17 @@
 	  $('#no-connection').css('display', '');
 	});
 	</script>
+	<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 	<script src="/jscolor.min.js"></script>
 	<script src="/factions.js"></script>
 	<script src="/chat.js"></script>
-	<script type="text/javascript" src="/captcha.js"></script>
+	<script src="/captcha.js"></script>
+	<script src="/alertify.js"></script>
 	<script src="/map.js"></script>
+	<script src="/bootstrap/bootstrap.min.js"></script>
 	<script src="/jquery-jvectormap-2.0.3.min.js"></script>
 	<script src="/jquery-jvectormap-world-mill-ru.js"></script>
-	<script src="/bootstrap/bootstrap.min.js"></script>
-	<script src="/alertify.js"></script>
-	<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback" async defer></script>
-	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+	<script src="/jquery-jvectormap-ru_fd-mill.js"></script>
 	<script>
 		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -83,25 +85,23 @@
 	<script>
     var notifysound = new Audio('/assets/notify.wav');
 	function resize(){
-		if(map) map.updateSize();
+		if(map) map.updateSize();/*
 		if($(window).width() < 1196){
 			var navbarh = $('.navbar').outerHeight();
-			$('#map').height('70%');
-			$('#mapshadow').height('calc(100% - '+navbarh+'px)');
+			$('#map').height('50%');
+			$('.mapshadow').height('calc(100% - '+navbarh+'px)');
 			$('#chat').css('height', '');
 			$('#chatwindow').css('height', '');
 			$('#menu').css('height', '');
 		} else {
-			var navbarh = $('.navbar').outerHeight();
-			$('#map').height('calc(100% - '+navbarh+'px)');
-			$('#map,#mapshadow').height('calc(100% - '+navbarh+'px)')
+			$('#map').height('calc(100%');
 			$('#menu').css('height', '18em');
-			$('#chat').css('height', 'calc(100% - 18em - 11px)');
+			$('#chat').css('height', 'calc(100% - 18em - 15px)');
 			var chatty = $('#chatty').height();
 			var chat = $('#chat').height();
 			var entirechat = chat-chatty;
 			$('#chatwindow').css('height', entirechat+'px');
-		};
+		};*/
 	}
 	window.onresize = resize;
 	alertify.maxLogItems(20);
@@ -121,143 +121,118 @@
 	//If something goes wrong. Probably because of this:
 	window.setInterval(resize, 1000);
 	</script>
-	<div id="main" class="well row" style="margin: 0;">
+	<div class="well row" style="margin: 0;">
 		<span class="player-tooltip"></span>
 		<div class="well map col-xl-8">
-			<nav class="navbar navbar-full navbar-dark bg-inverse mui--no-user-select">
+			<span class="well mapdib top"></span>
+			<div class="mapshadow"></div>
+			<div id="map" style="display: none">
+				<button class="leave" onclick="deployMap('world_mill'); $(this).hide()" style="display:none">Покинуть Россию</button>
+			</div>
+		</div>
+		<div class="col-xl-4 no-print main">
+			<div class="well header">
 				<a class="navbar-brand" href="javascript:location.reload()">
 					<img src="/assets/wr new.webp" style="height: 1em" class="d-inline-block align-middle" alt="">
 					WorldRoulette
 				</a>
-				<span class="float-md-right">
-					<span class="text-muted">
-						<span class="fa-stack fa-lg" style="height: 2rem">
-							<i class="fa fa-signal fa-stack-lg" aria-hidden="true"></i>
-							<i id="no-connection" class="fa fa-ban fa-stack-1x text-danger" aria-hidden="true"></i>
-						</span>
-						<span>
-							<span id="online"></span>
-							<span class="sr-only">Онлайн:</span>
-							<i class="fa fa-users" aria-hidden="true"></i>
-						</span>
+				<span class="network fa-lg">
+					<span class="fa-layers fa-fw">
+						<i class="fa fa-signal" aria-hidden="true"></i>
+						<i id="no-connection" class="fa fa-ban text-danger" aria-hidden="true"></i>
 					</span>
-					<button class="btn btn-md" id="faqbtn">
-					FAQ <i class="fa fa-question-circle" aria-hidden="true"></i>
-					</button>
-					<button class="btn btn-md" id="takescreen">
-						<i class="fa fa-camera-retro" aria-hidden="true" style="line-height: 1.25"></i>
-					</button>
+					<span class="fa-layers fa-fw">
+						<i class="fa fa-users" aria-hidden="true"></i>
+						<span id="online" class="fa-layers-counter fa-2x"></span>
+					</span>
 				</span>
-				<button class="btn btn-md" id="menubtn"><i class="fa fa-bars" aria-hidden="true"></i>
-				Меню
-				</button>
-				<button class="btn btn-md" id="fbtn"><i class="fa fa-address-book-o" aria-hidden="true"></i>
-				Фракции
-				</button>
-			</nav>
-			<span class="well mapdib top"></span>
-			<span class="well mapdib date"></span>
-			<div id="mapshadow"></div>
-			<div id="map" style="height: 95%; width: 100%"></div>
-		</div><!--
-		<div class="well">
-			//<button id="playvideo" class="btn btn-primary" style="display: hidden">Просмотреть историю</button>
-			<a href="/top.php">Полный список</a>
-			<div class="row-fluid">
-				<div id="gtop" class="span6"></div>
-				<div id="gclantop" class="span6"></div>
-			</div>
-		</div>-->
-		<div class="col-xl-4 no-print" style="padding: 0; padding-left: 8px; padding-right: 8px">
-		<div class="well" id="menu">
-			<h3 style="margin: 11px" class="page-header">Меню карты </h3>
-			<button id="capt" class="btn" style="width: 100%; height: 78px; display:block">
-				<div id="capttext">Захватить</div>
-				<i id="captpause" class="fa fa-connectdevelop fa-spin fa-2x fa-fw" style="display: none"></i>
-			</button>
-
-			<div id="captcha" style="display: none;">
-				<div style="display: inline-block; margin-top: 10px;" class="g-recaptcha" data-sitekey="6Lc9Fz4UAAAAAJx4scoYQlrcFT5BlErwwtQDWCF6" data-theme="dark"></div>
-			</div>
-
-			<input type="text" id="givenick" style="margin-top: 10px; width:inherit;" placeholder="id пользователя" type="text"/>
-			<!--<button id="giveall">Передать всё</button>-->
-			<button id="give" class="btn btn-md" style="margin-top: 0px">Передать</button>
-			<div>Связь с админом -
-				<a target="_blank" href="https://2ch.hk/brg/res/542612.html"><i class="fa fa-bolt fa-lg"></i></a>
-				|
-				<a target="_blank" href="https://t.me/worldroulette"><i class="fa fa-telegram fa-lg" aria-hidden="true"></i></a>
-			</div>
-		</div>
-
-
-		<div class="well" id="chat">
-			<div id="chatty">
+				<div class="flex-break"></div>
+				<button class="btn btn-md" id="menubtn"><i class="fas fa-sliders-h" data-fa-transform="rotate-90"></i> Настройки</button>
+				<button class="btn btn-md" id="fbtn"><i class="fa fa-address-book" aria-hidden="true"></i> Фракции</button>
+				<button class="btn btn-md" id="faqbtn"><i class="fa fa-question-circle" aria-hidden="true"></i> FAQ</button>
+				<!--<button class="btn btn-md" id="takescreen">
+					<i class="fa fa-camera-retro" aria-hidden="true" style="line-height: 1.25"></i>
+				</button>-->
 				<hr>
-				<h3 id="chatheader">Чат</h3>
+			</div>
+			<div class="well controls">
+				<h3 style="margin: 11px" class="page-header"><i class="fa fa-bars" aria-hidden="true"></i> Меню карты</h3>
+				<button id="capt" class="btn btn-big" style="width: 100%">
+					<div id="capttext">Захватить</div>
+					<i id="captpause" class="fab fa-connectdevelop fa-spin fa-fw" style="display: none"></i>
+				</button>
+
+				<div id="captcha" style="display: none;">
+					<div style="display: inline-block; margin-top: 10px;" class="g-recaptcha" data-sitekey="6Lc9Fz4UAAAAAJx4scoYQlrcFT5BlErwwtQDWCF6" data-theme="dark"></div>
+				</div>
+
+				<input type="text" id="givenick" style="margin-top: 10px; width:inherit;" placeholder="id пользователя" type="text"/>
+				<!--<button id="giveall">Передать всё</button>-->
+				<button id="give" class="btn btn-md" style="margin-top: 0px">Передать</button>
+				<div>Связь с админом:
+					<a target="_blank" href="https://2ch.hk/brg/res/542612.html"><i class="fa fa-bolt"></i></a>
+					/
+					<a target="_blank" href="https://t.me/worldroulette"><i class="fab fa-telegram" aria-hidden="true"></i></a>
+				</div>
+				<hr>
+			</div>
+
+			<div class="well chat">
+				<h3 id="chatheader"><i class="fas fa-comments"></i> Чат</h3>
 				<input style="white-space: nowrap; width: 100%; display: block;" id="chatmsg" type="text" maxlength="200" placeholder="Сообщение">
 				<button id="sendmsgbutton" style="width: 100%; display: block;" onclick="sendMessage();">Отправить</button>
+				<script type="text/javascript">
+				function msgval(name)
+				{
+					doc = document.getElementById("chatmsg")
+					doc.value += name + " ";
+					doc.focus();
+				}
+				</script>
 			</div>
-			<div class="chatwindow well" id="chatwindow" readonly></div>
-			<script type="text/javascript">
-			function msgval(name)
-			{
-				doc = document.getElementById("chatmsg")
-				doc.value += name + " ";
-				doc.focus();
-			}/*
-			function ban(name)
-			{
-					if(!confirm("Вы уверены что хотите кикнуть пользователя " + name + "?")){return;}
-					$.post(
-						"/ban.php",
-						{
-							usertoban: name
-						}
-					);
-			}*/
-			</script>
-		</div>
+
+			<div class="well chatwindow" id="chatwindow"></div>
 		</div>
 	</div>
 
-	<div id="faq" class="auth" style="display:none; text-align:left; padding:15px">
-		<img src="/assets/wr new.webp" class="d-block w-50 mx-auto"/>
-		<p>
-			Вы вошли в свой аккаунт, поздравляем!<br>
-			Теперь вы можете играть в эту замечательную игру!<br>
-			Как?<br>
-			Выбирайте любую страну и нажимайте на неё<br>
-			Затем нажимайте на кнопку захватить, и если вам выпало:<br>
-			Две одинаковые последние цифры(11,22), то вы отняли 1 силу<br>
-			Три одинаковые последние цифры(111), то вы отняли 2 силы<br>
-			Четыре одинаковые последние цифры(1111), то вы отняли 4 силы<br>
-			Если же вам не повезло так, то попробуйте еще раз!<br>
-			<b>КАРТУ МОЖНО ПРИБЛИЖАТЬ КОЛЕСИКОМ МЫШИ ИЛИ ДВУМЯ ПАЛЬЦАМИ</b><br>
-			Вы можете сменить цвет или имя, зайдя в меню<br>
-			Вы можете писать личные сообщения! /msg id сообщение
-		</p>
+	<div id="faq" class="menu" style="display:none">
+		<button class="back"><i class="fas fa-arrow-left"></i> Назад</button>
+		<img src="/assets/wr new.webp" class="d-block mx-auto" style="width: 40vw"/>
+		Вы вошли в свой аккаунт, поздравляем!<br>
+		Теперь вы можете играть в эту замечательную игру!<br>
+		Как?<br>
+		Выбирайте любую страну и нажимайте на неё<br>
+		Затем нажимайте на кнопку захватить, и если вам выпало:<br>
+		Две одинаковые последние цифры(11,22), то вы отняли 1 силу<br>
+		Три одинаковые последние цифры(111), то вы отняли 2 силы<br>
+		Четыре одинаковые последние цифры(1111), то вы отняли 4 силы<br>
+		Если же вам не повезло так, то попробуйте еще раз!<br>
+		<b style="max-width: 40vw; display: inline-block">КАРТУ МОЖНО ПРИБЛИЖАТЬ КОЛЕСИКОМ МЫШИ ИЛИ ДВУМЯ ПАЛЬЦАМИ</b><br>
+		Вы можете сменить цвет или имя, зайдя в настройки<br>
+		Вы можете писать личные сообщения! /msg id сообщение
 		<hr>
 		<h3>Известные личности</h3>
-		<p>
-			<h5 class="text-center">Захватили мир</h5>
-			<div class="text-center"><b>(2)</b> <span class="chatname 675" data-name-color="2"></span></div>
-			<div class="text-center"><b>(2)</b> <span class="chatname 945" data-name-color="2"></span></div>
-			<div class="text-center"><b>(3)</b> <span class="chatname 648" data-name-color="4"></span></div>
-			<div class="text-center"><b>(5)</b> <span class="chatname 1231" data-name-color="0"></span></div>
-			<div class="text-center"><b>(1)</b> <span class="chatname 1954" data-name-color="2"></span></div>
-			<div class="text-center"><b>(1)</b> <span class="chatname 806" data-name-color="3"></span></div>
-			<div class="text-center"><b>(2)</b> <span class="chatname 908" data-name-color="3"></span></div>
-			<div class="text-center"><b>(1)</b> <span class="chatname 2193" data-name-color="3"></span></div>
-			<div class="text-center"><b>(1)</b> <span class="chatname 2242" data-name-color="3"></span></div>
-			<div class="text-center"><b>(1)</b> <span class="chatname 2481" data-name-color="3"></span></div>
-		</p>
+		<h5 class="text-center">Захватили мир</h5>
+		<div class="text-center"><b>(2)</b> <span class="chatname 675" data-name-color="2"></span></div>
+		<div class="text-center"><b>(2)</b> <span class="chatname 945" data-name-color="2"></span></div>
+		<div class="text-center"><b>(3)</b> <span class="chatname 648" data-name-color="4"></span></div>
+		<div class="text-center"><b>(5)</b> <span class="chatname 1231" data-name-color="0"></span></div>
+		<div class="text-center"><b>(1)</b> <span class="chatname 1954" data-name-color="2"></span></div>
+		<div class="text-center"><b>(1)</b> <span class="chatname 806" data-name-color="3"></span></div>
+		<div class="text-center"><b>(2)</b> <span class="chatname 908" data-name-color="4"></span></div>
+		<div class="text-center"><b>(1)</b> <span class="chatname 2193" data-name-color="1"></span></div>
+		<div class="text-center"><b>(1)</b> <span class="chatname 2242" data-name-color="1"></span></div>
+		<div class="text-center"><b>(1)</b> <span class="chatname 2481" data-name-color="0"></span></div>
+		<div class="text-center"><b>(1)</b> <span class="chatname 2510" data-name-color="0"></span></div>
+		<div class="text-center"><b>(1)</b> <span class="chatname 1690" data-name-color="0"></span></div>
+		<div class="text-center"><b>(1)</b> <span class="chatname 2534" data-name-color="2"></span></div>
 		<h5 class="text-center">Наши друзья</h5>
 		<div class="text-center"><a target="_blank" href="http://parolja.net/">Пароля.нет</a></div>
 		<div class="text-center"><a target="_blank" href="https://my.argotel.ru/aff.php?aff=45">argotel.ru</a></div>
 	</div>
 
-	<div id="mmenu" style="display:none;" class="auth">
+	<div id="mmenu" style="display:none" class="menu">
+		<button class="back"><i class="fas fa-arrow-left"></i> Назад</button>
 		<button class="login" id="changecolorbtn">Цвет</button> :
 		<input type="text" class="jscolor login" id="newcolor" value="#FF00FF" data-jscolor="{onFineChange:'return false'}"/><br>
 		<small class="form-text text-muted">Новый цвет в формате <a href="https://ru.wikipedia.org/wiki/Цвета_HTML">HEX</a></small>
@@ -270,13 +245,16 @@
 		<button class="login" id="changeflagbtn">Герб</button> :
 		<input type="file" id="newflag" accept="image/x-png,image/gif,image/jpeg"><br>
 		<small class="form-text text-muted">Герб для вашего государства</small>
+		<button class="login" id="logout">Выйти</button><br>
+		<button class="login" onclick="location.reload(true)">Hard reload</button><br>
 		<hr>
 		<span>Громкость звуков</span><input type="range" id="soundrange" min="0" max="10000"><span></span><br>
 		<button class="login" id="changebkgbtn">Упрощенный фон</button>
 		<button class="login" id="togtopbtn">вкл/выкл топ</button>
 	</div>
 
-	<div id="fmenu" style="display:none;" class="auth">
+	<div id="fmenu" style="display:none" class="menu">
+		<button class="back"><i class="fas fa-arrow-left"></i> Назад</button>
 		<div id="fadmin" style="display:none">
 			<h3>Управление фракцией</h3>
 			<button class="login" id="changefcolorbtn">Цвет</button>:
@@ -304,20 +282,25 @@
 		</div>
 	</div>
 
-	<div id="mtop" style="display:none;" class="auth"></div>
+	<div id="mtop" style="display:none;" class="menu"></div>
 	<div class="dropdown clearfix player-menu">
 		<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu" style="display:block;position:static;">
+			<li><button tabindex="-1" class="player-menu-reply">Ответить</button></li>
 			<li><button tabindex="-1" class="player-menu-give">Выбрать для передачи</button></li>
 			<li><button tabindex="-1" class="player-menu-msg">Приватное сообщение</button></li>
 		</ul>
 	</div>
 	<script>
 		let pmenu = $('.player-menu');
+		$('.player-menu-reply').click(e=>{
+			chatmsg.val(`$${pmenu.data('pid')}, `);
+			chatmsg.focus();
+		})
 		$('.player-menu-give').click(e=>{
 			$('#givenick').val(pmenu.data('pid')).focus();
 		})
 		$('.player-menu-msg').click(e=>{
-			chatmsg.value = `/msg ${pmenu.data('pid')} `;
+			chatmsg.val(`/msg ${pmenu.data('pid')} `);
 			chatmsg.focus();
 		})
 		$(window).click(e=>{

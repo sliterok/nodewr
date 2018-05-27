@@ -1,6 +1,7 @@
 let lastmsgtime,
 	tcont,
 	chatmsg,
+	chatcontent,
 	keyarr = [];
 $(()=>{
 	chatmsg = $('#chatmsg')
@@ -30,23 +31,19 @@ function sendMessage(){
 	chatmsg.val('')
 }
 $(window).keypress(e => {
-	console.log(e);
 	if(e.keyCode == 13) sendMessage()
 });
 /**
  * Load new messages
  */
-function getmsg() {
-	$.ajax({
-		type: 'POST',
-		url: '/chat',
-		contentType: "application/json",
-		data: JSON.stringify({last: lastmsgtime}),
-		success: data => {
-			if(data) pulltochat(data);
-			else alertify.error('Чат сломался!')
-		}
-	});
+function getmsg(cb) {
+	return $.get(
+	'/chat?last=' + lastmsgtime, function(data){
+		if(!data) alertify.error('Чат сломался!')
+		else if(typeof cb == 'function') cb();
+		else if(!cb) pulltochat(data);
+		else chatcontent = data;
+	}).promise();
 }
 
 socket.on('updatechat', function(data){
@@ -58,18 +55,24 @@ socket.on('updateplayers', function(msg){
 });
 function pulltochat(content) //Расположение контента чата
 {
-	if (!content) return alertify.error('Чат сломался');
+	if(!content) {
+		console.log('chcontent', chatcontent)
+		if(chatcontent) content = chatcontent;
+		else return alertify.error('Чат сломался');
+		chatcontent = undefined;
+	}
 	applyPlayers(content.players);
 	content = content.chat;
 	let keys = Object.keys(content);
 	for(let i = 0; i<keys.length; i++){
 		let key = keys[i],
-			item = content[key];
+			item = content[key],
+			rld = false;
 		if($('#chatwindow').children().first().data('msgTime') == key) return;
 		if($('#chatwindow').find(key).length != 0) continue;
 		if(!lastmsgtime) lastmsgtime = key;
 		if($('#chatwindow').children().length > 300) $('#chatwindow').children().last().remove();
-		let el = $(`<div class="msg" data-msg-time="${key}"></div>`).prependTo('#chatwindow');
+		let el = $(`<div class="msg" data-msg-time="${key}" readonly></div>`).prependTo('#chatwindow');
 		if(item.id == 13) el.css('background-color', '#322');
 		if(item.id == players[me].id && item.to) el.css('background-color', '#4b4b4b');
 		if(item.to == players[me].id && item.to) el.css('background-color', '#174b35');
@@ -85,10 +88,18 @@ function pulltochat(content) //Расположение контента чат�
 				name = twemoji.parse(name);
 				if(name == '') return a;
 				else return `<span class='chatname ${id}' data-name-color='${Math.floor((id % 10)/2)}'>${name}</span>`;
+			} else {
+				rld = id;
+				return `<span class='chatname ${id}' data-name-color='${Math.floor((id % 10)/2)}'>$${id}</span>`;
 			}
-			else return a;
 		});
 		replaces = 0;
+		item.msg = item.msg.replace(/\$[A-Z\-]{5}/gi, function(a, b){
+			if(replaces > 10) return;
+			replaces++;
+			console.log('rep')
+			return `<img class="flag-icon chat-flag" data-code="${a.substr(1, 5).toUpperCase()}" onerror="$(this).replaceWith('{a}');" src='https://worldroulette.ru/flags/4x3/${a.substr(1, 2).toLowerCase()}.svg'></img>`;
+		});
 		item.msg = item.msg.replace(/\$[A-Z]{2}/gi, function(a, b){
 			if(replaces > 10) return;
 			replaces++;
@@ -98,6 +109,7 @@ function pulltochat(content) //Расположение контента чат�
 			date = new Date(parseInt(key.substring(0, key.length-3)));
 		el.html(': ');
 		let msgel = $('<span>'+item.msg+'</span>').appendTo(el);
+		if(rld) reloadPlayers([rld]);
 		msgel.find('img.emoji').mouseleave(rmPMenu).mousemove(e=>{
 			let url = e.target.src,
 				tooltip = $('.player-tooltip');
@@ -159,8 +171,10 @@ function pulltochat(content) //Расположение контента чат�
 			code = tgt.data('code'),
 			uid = cdata[code].uid,
 			player = players[uid],
+			cname = jvm.Map.maps.world_mill.paths[code] ? jvm.Map.maps.world_mill.paths[code].name : jvm.Map.maps.ru_fd_mill.paths[code].name,
 			tooltip = $('.player-tooltip');
-		tooltip.html(`<div style="text-align: center">${player.imgur ? `<img class="player-flag" src="${player.imgur}">` : ''}<div class="player-profile">${map.regions[code].config.name} <span class="flag-icon flag-icon-${code}"></span> ${code}<br> <span data-name-color="${Math.floor((uid % 10)/2)}">${twemoji.parse(player.name)} [${uid}]</span></br>${factions[player.fid] ? `Фракция: ${factions[player.fid].name}</br>` : ''} Сила: ${romanize(cdata[code].sp)}</div></div>`);
+		
+		tooltip.html(`<div style="text-align: center">${player.imgur ? `<img class="player-flag" src="${player.imgur.replace('"', '')}">` : ''}<div class="player-profile">${cname} <span class="flag-icon flag-icon-${code.length < 3 ? code : code.substr(0,2)}"></span> ${code}<br> <span data-name-color="${Math.floor((uid % 10)/2)}">${twemoji.parse(player.name)} [${uid}]</span></br>${factions[player.fid] ? `Фракция: ${factions[player.fid].name}</br>` : ''} Сила: ${romanize(cdata[code].sp)}</div></div>`);
 		let x = e.pageX - tooltip.outerWidth()/2
 		if(x - tooltip.outerWidth()/2 < 0) x = 0;
 		else if(x + tooltip.outerWidth() + 1 >= $(window).width()) x = $(window).width() - tooltip.outerWidth() - 1;
@@ -223,7 +237,7 @@ function getPMenu(e){
 		tooltip = $('.player-tooltip');
 	if(!player) return
 	let name = twemoji.parse(player.name);
-	tooltip.html(`${player.imgur ? `<img class="player-flag" style="border: 2px solid ${factions[player.fid] ? factions[player.fid].color : player.Color}" src="${player.imgur}">` : ''}<div class="player-profile"><span data-name-color="${Math.floor((id % 10)/2)}">${name}</span><br>${factions[player.fid] ? `Фракция: ${factions[player.fid].name}</br>` : ''}ID: ${id}</div>`);
+	tooltip.html(`${player.imgur ? `<img class="player-flag" style="border: 2px solid ${factions[player.fid] ? factions[player.fid].color : player.Color}" src="${player.imgur.replace('"', '')}">` : ''}<div class="player-profile"><span data-name-color="${Math.floor((id % 10)/2)}">${name}</span><br>${factions[player.fid] ? `Фракция: ${factions[player.fid].name}</br>` : ''}ID: ${id}</div>`);
 	let x = e.pageX - tooltip.outerWidth()/2;
 	if(x < 0) x = 0;
 	else if(x + tooltip.outerWidth() + 1 >= $(window).width()) x = $(window).width() - tooltip.outerWidth() - 1;
