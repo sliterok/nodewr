@@ -15,17 +15,21 @@
     "forever": "^0.15.2",
     "fs": "0.0.1-security",
     "geoip-lite": "^1.2.1",
-    "greenlock-express": "^2.1.5",
+    "greenlock-express": "^2.1.6",
     "http-proxy": "^1.17.0",
     "http2": "^3.3.7",
     "le-challenge-fs": "^2.0.8",
     "le-store-certbot": "^2.1.2",
     "microtime-fast": "^1.0.2",
     "mysql": "^2.15.0",
+    "mysql2": "^1.5.3",
+    "node-fetch": "^2.1.2",
     "nodemailer": "^2.6.4",
     "random-hex": "^1.0.2",
     "redirect-https": "^1.1.5",
     "request": "^2.87.0",
+    "request-promise": "^4.2.2",
+    "sequelize": "^4.37.10",
     "socket.io": "^1.7.4"
   }
 }

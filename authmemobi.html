@@ -18,9 +18,10 @@
 	<link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png?v=3">
 	<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png?v=3">
 	<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png?v=3">
-	<link rel="manifest" href="/assets/icons/manifest.json?v=3">
+	<link rel="manifest" href="/manifest.json?v=3">
 	<link rel="mask-icon" href="/assets/icons/safari-pinned-tab.svg?v=3" color="#5bbad5">
 	<link rel="shortcut icon" href="/assets/icons/favicon.ico?v=3">
+	<meta property="og:image" content="/assets/wr new sq.png"/>
 	<meta name="apple-mobile-web-app-title" content="WorldRoulette">
 	<meta name="application-name" content="WorldRoulette">
 	<meta name="msapplication-config" content="/assets/icons/browserconfig.xml?v=3">
@@ -47,6 +48,7 @@
 			<div><span>0%</span></div>
 		</div>
 	</div>
+	<a class="privacy-policy" href="/privacypolicy.html">Privacy policy</a>
 	<div class="menu center">
 		<div class="title">Авторизация</div>
 		<input style="visibility: hidden" type="text" class="name" placeholder="Имя (3-35, Любые символы)" /><br>
@@ -54,7 +56,9 @@
 		<input type="password" class="pass" id="pass" placeholder="Пароль (3-50)"/><br>
 		<input id="isNew" type="checkbox">
 		<label for="isNew">Новый пользователь?</label><br>
-		<button onclick="grecaptcha.execute()" class="mbtn">Войти</button>
+		<button onclick="grecaptcha.execute()" class="mbtn">Войти</button><br><br>
+		<button onclick="guestLogin()">Войти как гость</button><br>
+		<small class="form-text text-muted">Только базовый функционал!</small>
 	</div>
 	<script src="/authme.js"></script>
 </body>

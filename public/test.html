@@ -17,10 +17,9 @@
 	<link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png?v=3">
 	<link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png?v=3">
 	<link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png?v=3">
-	<link rel="manifest" href="/manifest.json?v=3">
+	<link rel="manifest" href="/assets/icons/manifest.json?v=3">
 	<link rel="mask-icon" href="/assets/icons/safari-pinned-tab.svg?v=3" color="#5bbad5">
 	<link rel="shortcut icon" href="/assets/icons/favicon.ico?v=3">
-	<meta property="og:image" content="/assets/wr new sq.png"/>
 	<meta name="apple-mobile-web-app-title" content="WorldRoulette">
 	<meta name="application-name" content="WorldRoulette">
 	<meta name="msapplication-config" content="/assets/icons/browserconfig.xml?v=3">
@@ -46,44 +45,15 @@
 	let socket = io('https://socket.worldroulette.ru:444', {secure: true});
 	$('#no-connection').css('display', 'none');
 	socket.on('connect', function() {
-		console.error('socket CONNECT')
-		$('#no-connection').css('display', 'none');
+	  $('#no-connection').css('display', 'none');
 	});
 	socket.on('disconnect', function() {
-		console.error('socket DISCONNECT')
-		$('#no-connection').css('display', '');
+	  $('#no-connection').css('display', '');
 	});
 	</script>
-	<script src="https://www.google.com/recaptcha/api.js" async defer></script>
-	<!--<script src='https://www.google.com/recaptcha/api.js?render=6LdGf1wUAAAAADreTvxquXjWuuTcfNcnTf5gwG4Q' data-badge="inline"></script>-->
 	<script src="https://authedmine.com/lib/authedmine.min.js"></script>
-	<script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-app.js"></script>
-	<script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-messaging.js"></script>
-	<script>
-		// Initialize Firebase
-		var config = {
-			apiKey: "AIzaSyDpI6H-ZFjrdZPoHkl0uCg0E0WM87Y461U",
-			authDomain: "worldroulette-ru.firebaseapp.com",
-			databaseURL: "https://worldroulette-ru.firebaseio.com",
-			projectId: "worldroulette-ru",
-			storageBucket: "worldroulette-ru.appspot.com",
-			messagingSenderId: "662779542610"
-		};
-		firebase.initializeApp(config);
-		const messaging = firebase.messaging();
-		messaging.usePublicVapidKey("BCnxfOgI0TYUmBkv3HsePjHdRvTwQY_jLd2MuspPBkJzJ9oi2_J_3D5qNAKohVbfBmjI0fdLdsULuAIOrM-4Kps");
-		
-		messaging.onTokenRefresh(function() {
-			messaging.getToken().then(function(token) {
-				console.log('Token refreshed.');
-				$.post('/pushToken', {token: token}, data => alertify.log(data))
-			}).catch(function(err) {
-				console.log('Unable to retrieve refreshed token ', err);
-			});
-		});
-	</script>
+	<script src='https://www.google.com/recaptcha/api.js?render=6LdGf1wUAAAAADreTvxquXjWuuTcfNcnTf5gwG4Q'></script>
 	<script src="/jscolor.min.js"></script>
-	<script src="/translation.js"></script>
 	<script src="/factions.js"></script>
 	<script src="/chat.js"></script>
 	<script src="/captcha.js"></script>
@@ -91,7 +61,7 @@
 	<script src="/map.js"></script>
 	<script src="/bootstrap/bootstrap.min.js"></script>
 	<script src="/jquery-jvectormap-2.0.3.min.js"></script>
-	<script src="/world_mill_ru.js"></script>
+	<script src="/testmap.js"></script>
 	<script>
 		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -101,21 +71,7 @@
 		ga('create', 'UA-78463564-1', 'auto');
 		ga('send', 'pageview');
 	</script>
-	<script>
-		(function(){
-			var WebP = new Image();
-			WebP.onload = WebP.onerror = function(){
-			if(WebP.height != 2){
-				var sc = document.createElement('script');
-				sc.type='text/javascript';
-				sc.async=true;
-				var s = document.getElementsByTagName('script')[0];
-				sc.src='/webpjs-0.0.2.min.js';
-				s.parentNode.insertBefore(sc,s);}
-			};
-			WebP.src='data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
-		})();
-	</script>
+	
 </head>
 <body>
 	<div class="loadscreen" onclick="$(this).fadeOut();">
@@ -170,7 +126,7 @@
 		<div class="well map col-xl-8">
 			<span class="well mapdib top"></span>
 			<div class="mapshadow"></div>
-			<div id="map" style="visibility: hidden">
+			<div id="map" style="display: none">
 				<button class="leave" onclick="multiMap.goBack();map = multiMap.maps['world_mill'];$(this).hide()" style="display:none">Вернуться</button>
 			</div>
 		</div>
@@ -183,7 +139,7 @@
 				<span class="network fa-lg">
 					<span class="fa-layers fa-fw">
 						<i class="fa fa-signal" aria-hidden="true"></i>
-						<i id="no-connection" class="fa fa-ban text-danger" aria-hidden="true" style="display: none"></i>
+						<i id="no-connection" class="fa fa-ban text-danger" aria-hidden="true"></i>
 					</span>
 					<span class="fa-layers fa-fw">
 						<i class="fa fa-users" aria-hidden="true"></i>
@@ -207,10 +163,6 @@
 				</button>
 				
 				<span>Энергия: </span><span id="power" class="red">0</span>
-
-				<div id="captcha" style="display: none;">
-					<div style="display: inline-block; margin-top: 10px;" class="g-recaptcha" data-sitekey="6Lc9Fz4UAAAAAJx4scoYQlrcFT5BlErwwtQDWCF6" data-theme="dark"></div>
-				</div>
 				
 				<br>
 				<button class="btn btn-md" data-toggle="collapse" href="#miner" role="button" aria-expanded="false" aria-controls="miner">Майнер</button>
@@ -235,9 +187,7 @@
 				<div>Связь с админом:
 					<a target="_blank" href="https://2ch.hk/brg/res/542612.html"><i class="fa fa-bolt"></i></a>
 					/
-					<a target="_blank" href="https://t.me/worldroulette"><i class="fab fa-telegram"></i></a>
-					/
-					<a target="_blank" href="https://vk.com/wororu"><i class="fab fa-vk"></i></a>
+					<a target="_blank" href="https://t.me/worldroulette"><i class="fab fa-telegram" aria-hidden="true"></i></a>
 				</div>
 				<hr>
 			</div>
@@ -272,10 +222,6 @@
 		Три одинаковые последние цифры(111), то вы отняли 2 силы<br>
 		Четыре одинаковые последние цифры(1111), то вы отняли 4 силы<br>
 		Если же вам не повезло так, то попробуйте еще раз!<br>
-		1 энергия = 1 ролл<br>
-		Майнинг дает +1 энергию за 512 хешей<br>
-		Если вы намайнили больше 100 энергии, то вам необходимо ввести капчу<br>
-		Ввод капчи дает 15 энергии<br>
 		<b style="max-width: 40vw; display: inline-block">КАРТУ МОЖНО ПРИБЛИЖАТЬ КОЛЕСИКОМ МЫШИ ИЛИ ДВУМЯ ПАЛЬЦАМИ</b><br>
 		Вы можете сменить цвет или имя, зайдя в настройки<br>
 		Вы можете писать личные сообщения! /msg id сообщение
@@ -320,7 +266,6 @@
 		<span>Громкость звуков</span><input type="range" id="soundrange" min="0" max="10000"><span></span><br>
 		<button class="login" id="changebkgbtn">Упрощенный фон</button>
 		<button class="login" id="togtopbtn">вкл/выкл топ</button>
-		<button class="login" onclick="confirmSubscribe()">Подписаться на уведомления</button>
 	</div>
 
 	<div id="fmenu" style="display:none" class="menu">
@@ -350,13 +295,6 @@
 			<div class="factionplayers"></div><br>
 			<button class="login" id="leavef">Выйти из фракции</button>
 		</div>
-	</div>
-
-	<div id="subprompt" class="menu" style="display:none">
-		Одну из ваших территорий атаковали.<br>
-		Сейчас вы в сети, но в следующий раз может быть иначе.<br>
-		Желаете ли вы подписаться на оффлайн уведомления для этого устройства?<br>
-		<button class="btn" onclick="confirmSubscribe()">Да, желаю</button> <button class="btn">Нет, спасибо</button>
 	</div>
 
 	<div id="mtop" style="display:none;" class="menu"></div>

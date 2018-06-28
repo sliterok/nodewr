@@ -1,0 +1,94 @@
+<html>
+<head>
+	<title>jVectorMap demo</title>
+	<link rel="stylesheet" href="/jquery-jvectormap-2.0.3.css" type="text/css" media="screen" />
+	<script src="jquery.js"></script>
+	<script src="jquery-jvectormap-2.0.3.min.js"></script>
+	<script src="testmap.js"></script>
+</head>
+<body style="margin: 0">
+  <div id="world-map" style="width: 100vw; height: 100vh"></div>
+  <script>
+  	let players = {}, factions = {}
+	let dT = 2;//20
+	const targetTime = 1;//180; //secs
+	const map = new jvm.Map({
+		map: 'world_mill',
+		regionsSelectable: true,
+		//backgroundColor: 'transparent',
+		regionsSelectableOne: true,
+		zoomMax: '18',
+    	zoomButtons : false,
+		backgroundColor: '#000000',
+		zoomOnScrollSpeed: '1',
+		container: $('#world-map'),
+		series: {
+			regions: [{
+				attribute: 'fill'
+			}]
+		},
+		regionStyle: {
+			selected: {
+				stroke: '#000000',
+				'stroke-width': '1', //0.5
+			}
+		}
+	});
+	async function init(){
+		data = await fetch('/timelapse')
+		json = await data.json()
+		let timeLength = json.length - 384;
+		if(targetTime){
+			dT = targetTime / timeLength * 1000
+		}
+		const reqPlayers = [];
+		for(i in json){
+			let el = json[i];
+			if(reqPlayers.indexOf(el.uid) < 0)
+				reqPlayers.push(el.uid)
+		}
+		await reloadPlayers(reqPlayers)
+		await reloadFactions()
+		pushToMap(0)
+	}
+	function pushToMap(i){
+		let el = json[i];
+		updateMap(el)
+		if(el.time == 1528068674699)
+			pushToMap(i+1)
+		else 
+			window.setTimeout(pushToMap, dT, i+1);
+	}
+	function applyPlayers(pl){
+		console.log('applyPlayers: ', pl);
+		$.extend(true, players, pl);
+	}
+	function reloadPlayers(ids, cb)
+	{
+		return $.get(
+			"/getplayers?ids="+JSON.stringify(ids), function(data){
+				applyPlayers(data);
+		}).promise();
+	}
+  	function reloadFactions(cb){
+		return $.get("/factions", function(data){
+			factions = JSON.parse(data);
+			if(cb) cb();
+		}).promise();
+	}
+	function updateMap(data) {
+		let mapData = {};
+		let code = data.code
+		let owner = data.uid
+		mapData[code] = factions[players[owner].fid] ? factions[players[owner].fid].color : players[owner].color;
+		//console.log(mapData)
+		map.series.regions[0].setValues(mapData);
+	}
+	  
+	$(document).keypress(function(e) {
+		if(e.which == 13) 
+			init()
+	});
+  </script>
+</body>
+</html>

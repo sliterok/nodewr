@@ -3,12 +3,14 @@ let auid,
 	number,
 	me,
 	map,
-	cdata,
+	cdata = {},
 	players = {},
 	ccode,
 	online,
 	plTop,
 	mapDisabled = false,
+	updateTime,
+	worker,
 	hitsound = new Audio('/assets/hit.wav');
 
 function init(){
@@ -19,6 +21,9 @@ function init(){
 		})
 	})
 
+	navigator.serviceWorker.register('/offlineWorker.js').then(reg => worker = reg)
+	
+	
 	let pArr = [reloadFactions(), reloadMap(true), pgPromise, reloadOnline(), reloadTop(true), getmsg(true), reloadThis()];
 	Promise.all(pArr).then(()=>{
 		deployMap('world_mill', 'start')
@@ -43,10 +48,11 @@ init();
  * @param {Array} pl Array of players
  */
 function applyPlayers(pl){
-	console.log(pl);
-	$.each(pl, (id, player)=>{
+	console.log('applyPlayers: ', pl);
+	$.extend(true, players, pl);
+	/*$.each(pl, (id, player)=>{
 		players[id] = player;
-	})
+	})*/
 }
 
 /**
@@ -86,7 +92,7 @@ function updatePlayers(cb)
 	for(let i = 0; i<keys.length; i++){
 		let player = players[keys[i]];
 		$('.chatname.'+player.id).html(twemoji.parse(player.name));
-		$('.chatcolor.'+player.id).css('background-color', factions[player.fid] ? factions[player.fid].color : player.Color);
+		$('.chatcolor.'+player.id).css('background-color', factions[player.fid] ? factions[player.fid].color : player.color);
 	}
 	if(cb) cb();
 }
@@ -135,11 +141,11 @@ number = 0;
 function deployMap(projection, start){
 	if(map && map.remove) map.remove()
 	map = new jvm.Map({
-		map: projection,
 		regionsSelectable: true,
+		map: 'world_mill',
 		backgroundColor: 'transparent',
 		regionsSelectableOne: true,
-		zoomMax: '18',
+		zoomMax: '500',
 		zoomOnScrollSpeed: '1',
 		container: $('#map'),
 		series: {
@@ -156,23 +162,17 @@ function deployMap(projection, start){
 		zoomButtons: false,
 		onRegionSelected: function (event, region, isSelected, Arrselected)
 		{
-			if(Arrselected[0] == 'RU') {
-				deployMap('ru_fd_mill');
-				$('#map .leave').show();
-			} else if(Arrselected[0]) {
-				ccode = Arrselected[0];
+			if(isSelected){
+				ccode = region;
 				let uid = cdata[ccode].uid,
 					enemy = players[uid],
 					thisp = players[me];
 
 				if((uid != me) && ((enemy.fid != thisp.fid && (thisp.fid || enemy.fid)) || (enemy.fid == 0 && thisp.fid == 0))){
-					$('#capttext').text('Захватить');
+					$('#capttext').text(dict.attack);
 				} else {
-					$('#capttext').text('Улучшить');
-					if(!cdata[ccode].sp == 7){
-						$('#capt').attr('disabled', '');
-						$('#capttext').text('Макс. сила');
-					} else if(!mapDisabled) {
+					$('#capttext').text(dict.heal);
+					if(!mapDisabled) {
 						$('#capt').removeAttr("disabled");
 					}
 				}
@@ -184,12 +184,17 @@ function deployMap(projection, start){
 		},
 		onRegionTipShow: function (event, label, code)
 		{
-			let uid = cdata[code].uid;
-			let player = players[uid];
-			label.html(`<div style="text-align: center">${player.imgur ? `<img class="player-flag" src="${player.imgur.replace('"', '')}">` : ''}<div class="player-profile">${label.html()} <span class="flag-icon flag-icon-${code.length < 3 ? code : code.substr(0, 2)}"></span> ${code}<br> <span data-name-color="${Math.floor((uid % 10)/2)}">${twemoji.parse(player.name)} [${uid}]</span></br>${factions[player.fid] ? `Фракция: ${factions[player.fid].name}</br>` : ''} Сила: ${romanize(cdata[code].sp)}</div></div>`);
+			const terr = cdata[code];
+			if(terr){
+				const sp = terr.sp,
+					  uid = terr.uid,
+					  player = players[uid];
+				label.html(`<div style="text-align: center">${player.imgur ? `<img class="player-flag" src="${player.imgur.replace('"', '')}">` : ''}<div class="player-profile">${label.html()} <span class="flag-icon flag-icon-${code.length < 3 ? code : code.substr(0, 2)}"></span> ${code}<br> <span data-name-color="${Math.floor((uid % 10)/2)}">${twemoji.parse(player.name)} [${uid}]</span></br>${factions[player.fid] ? `${dict.faction}: ${factions[player.fid].name}</br>` : ''} ${dict.defence}: ${romanize(terr.sp)}</div></div>`);
+			}
+			
 		}
 	});
-	$('#map').hide();
+	$('#map').css('visibility', 'hidden');
 	$('#map').mousedown((e)=>{
 		if(e.which == 2){
 			console.log(e);
@@ -205,14 +210,14 @@ function deployMap(projection, start){
  * @param   {boolean} cb don't appear new values
  * @returns {function} promise
  */
-function reloadMap(cb){
-	return $.post("/get", data => {
-		console.log(data);
+function reloadMap(cb, reg){
+	return $.get("/get?reg=" + (reg ? reg : '') + '&updateTime=' + updateTime, data => {
+		console.log('reloadMap: ', data);
 		if(data.map){
 			applyPlayers(data.players);
-			cdata = data.map;
+			$.extend(true, cdata, data.map);
+			updateTime = data.updateTime
 		}
-		else cdata = data;
 		if(!cb) updateMap();
 	}).promise();
 }
@@ -223,10 +228,11 @@ function reloadMap(cb){
  */
 function updateMap() {
 	let mapData = {};
-	for(let index in cdata){
-		let el = cdata[index];
-		mapData[index] = factions[players[el.uid].fid] ? factions[players[el.uid].fid].color : players[el.uid].Color;
+	for(let code in cdata){
+		let owner = cdata[code];
+		mapData[code] = factions[players[owner.uid].fid] ? factions[players[owner.uid].fid].color : players[owner.uid].color;
 	}
+	//console.log(mapData)
 	map.series.regions[0].setValues(mapData);
 
 	if(ccode){
@@ -235,18 +241,15 @@ function updateMap() {
 			thisp = players[me];
 
 		if((uid != me) && ((enemy.fid != thisp.fid && (thisp.fid || enemy.fid)) || (enemy.fid == 0 && thisp.fid == 0))){
-			$('#capttext').text('Захватить');
+			$('#capttext').text(dict.attack);
 		} else {
-			$('#capttext').text('Улучшить');
-			if(!cdata[ccode].sp == 7){
-				$('#capt').attr('disabled', '');
-				$('#capttext').text('Макс. сила');
-			} else if(!mapDisabled) {
+			$('#capttext').text(dict.heal);
+			if(!mapDisabled) {
 				$('#capt').removeAttr("disabled");
 			}
 		}
 	}
-	$('#map').show();
+	$('#map').css('visibility', 'visible')
 	map.updateSize();
 	setmainloader(100);
 }
@@ -257,7 +260,7 @@ function updateMap() {
  * @returns {function} promise
  */
 function reloadTop(cb){
-	return jQuery.get("/top", data=>{
+	return $.get("/top", data=>{
 		plTop = JSON.parse(data);
 		if(!cb) updateTop();
 	}).promise();
@@ -268,23 +271,23 @@ function reloadTop(cb){
  * Update top values locally
  */
 function updateTop() {
+	console.log('updateTop: ', plTop);
 	$('.mapdib.top').html('');
 	for(let el in plTop){
 		let pl = plTop[el],
 			pid = pl.id;
 		if(!pid) return;
-		console.log(factions[players[pid].fid], players[pid]);
 		$('.mapdib.top').append(`
 			<div>
-				<span class="chatcolor ${pid}" style="float: none; background-color: ${players[pid].fid ? factions[players[pid].fid] ? factions[players[pid].fid].color : players[pid].Color : players[pid].Color}">&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;
+				<span class="chatcolor ${pid}" style="float: none; background-color: ${players[pid].fid ? factions[players[pid].fid] ? factions[players[pid].fid].color : players[pid].color : players[pid].color}">&nbsp;&nbsp;&nbsp;&nbsp;</span>&nbsp;
 				<span class="chatname ${pid}">${twemoji.parse(players[pid].name)}</span>&nbsp;
-				${pl.score}&nbsp;силы
+				${pl.score}&nbsp;${dict.defence}
 			</div>`);
 	}
 }
 
-socket.on('updatemap', function(msg){
-	reloadMap();
+socket.on('updatemap', function(reg){
+	reloadMap(false, reg);
 	reloadTop();
 });
 

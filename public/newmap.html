@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>jVectorMap demo</title>
+  <link rel="stylesheet" href="jquery-jvectormap-2.0.3.css" type="text/css" media="screen"/>
+  <script src="jquery.js"></script>
+  <script src="jquery-jvectormap-2.0.3.min.js"></script>
+  <script src="testmap.js"></script>
+</head>
+<body>
+  <div id="world-map" style="width: 90vw; height: 90vh"></div>
+  <script>
+
+  map = new jvm.Map({
+        map: 'world_mill',
+  		regionsSelectable: true,
+  		//backgroundColor: 'transparent',
+  		regionsSelectableOne: true,
+  		zoomMax: '18',
+  		zoomOnScrollSpeed: '1',
+  		container: $('#world-map'),
+  		series: {
+  			regions: [{
+  				attribute: 'fill'
+  			}]
+  		},
+  		regionStyle: {
+  			selected: {
+  				stroke: '#000000',
+  				'stroke-width': '1', //0.5
+  			}
+  		},
+        onRegionTipShow: function (event, label, code)
+		{
+            label.html(`name_ru: ${label.html()},<br> iso_a2: ${code},<br> data: ${a[code]}`)
+
+		}
+  	});
+    a = JSON.parse('{"BD":"#D3FF65","BE":"#D3FF65","BF":"#0F5B69","BG":"#000000","BA":"#FFFFFF","BN":"#D3FF65","BO":"#8c04f7","JP":"#D3FF65","BI":"#696969","BJ":"#0F5B69","BT":"#696969","JM":"#000000","BW":"#d338ef","BR":"#BB57BF","BS":"#000000","BY":"#449C8F","BZ":"#FF0000","RU":"#449C8F","RW":"#D3FF65","RS":"#D3FF65","TL":"#D3FF65","TM":"#0742FF","TJ":"#0742FF","RO":"#000000","GW":"#0F5B69","GT":"#FF0000","GR":"#0F5B69","GQ":"#0F5B69","GY":"#D3FF65","GE":"#449C8F","GB":"#000000","GA":"#0F5B69","GN":"#0F5B69","GM":"#0F5B69","GL":"#000000","GH":"#0F5B69","OM":"#D3FF65","TN":"#0F5B69","JO":"#BB57BF","HR":"#D3FF65","HT":"#000000","HU":"#FFFF00","HN":"#FF0000","PR":"#000000","PS":"#696969","PT":"#D3FF65","PY":"#eeca22","PA":"#D3FF65","PG":"#D3FF65","PE":"#D3FF65","PK":"#0742FF","PH":"#000000","PL":"#449C8F","ZM":"#d338ef","EH":"#0F5B69","EE":"#449C8F","EG":"#D3FF65","ZA":"#d338ef","EC":"#D3FF65","IT":"#6335FF","VN":"#D3FF65","SB":"#000000","ET":"#FF694E","SO":"#D3FF65","ZW":"#d338ef","ES":"#6335FF","ER":"#D3FF65","ME":"#D3FF65","MD":"#D3FF65","MG":"#000000","MA":"#0F5B69","UZ":"#fe5319","MM":"#696969","ML":"#0F5B69","MN":"#449C8F","MK":"#0F5B69","MW":"#D3FF65","MR":"#0F5B69","UG":"#0F5B69","MY":"#D3FF65","MX":"#D3FF65","IL":"#BB57BF","FR":"#6335FF","FI":"#449C8F","FJ":"#000000","FK":"#000000","NI":"#FF0000","NL":"#ea9b0c","NO":"#449C8F","NA":"#d338ef","VU":"#000000","NC":"#000000","NE":"#0F5B69","NG":"#0F5B69","NZ":"#000000","NP":"#696969","XK":"#D3FF65","CI":"#0F5B69","CH":"#6335FF","CO":"#D3FF65","CN":"#449C8F","CM":"#0F5B69","CL":"#D3FF65","CA":"#FF0000","CG":"#0F5B69","CF":"#0F5B69","CD":"#d338ef","CZ":"#bf54dc","CY":"#D3FF65","CR":"#FF0000","CU":"#000000","SZ":"#696969","SY":"#BB57BF","KG":"#0742FF","KE":"#D3FF65","SS":"#D3FF65","SR":"#D3FF65","KH":"#D3FF65","SV":"#FF0000","SK":"#696969","KR":"#BB57BF","SI":"#6335FF","KP":"#696969","KW":"#D3FF65","SN":"#0F5B69","SL":"#0F5B69","KZ":"#449C8F","SA":"#BB57BF","SE":"#449C8F","SD":"#D3FF65","DO":"#000000","DJ":"#D3FF65","DK":"#134162","DE":"#6335FF","YE":"#D3FF65","DZ":"#0F5B69","US":"#FF0000","UY":"#D3FF65","LB":"#696969","LA":"#D3FF65","TW":"#000000","TT":"#000000","TR":"#D3FF65","LK":"#D3FF65","LV":"#449C8F","LT":"#449C8F","LU":"#ea9b0c","LR":"#0F5B69","LS":"#D3FF65","TH":"#D3FF65","TF":"#000000","TG":"#0F5B69","TD":"#0F5B69","LY":"#0F5B69","AE":"#D3FF65","VE":"#D3FF65","AF":"#0742FF","IQ":"#BB57BF","IS":"#000000","IR":"#D3FF65","AM":"#D3FF65","AL":"#6ffee0","AO":"#d338ef","AR":"#D3FF65","AU":"#690000","AT":"#6335FF","IN":"#696969","TZ":"#6335FF","AZ":"#D3FF65","IE":"#000000","ID":"#D3FF65","UA":"#449C8F","QA":"#A3351D","MZ":"#d338ef","US-VA":"#FF0000","US-PA":"#0C088C","US-TN":"#D3FF65","US-WV":"#0C088C","US-NV":"#FF0000","US-TX":"#FF0000","US-NH":"#FF0000","US-NY":"#0C088C","US-HI":"#FF0000","US-VT":"#0C088C","US-NM":"#FF0000","US-NC":"#D3FF65","US-ND":"#FF0000","US-NE":"#FF0000","US-LA":"#D3FF65","US-SD":"#FF0000","US-DC":"#0C088C","US-DE":"#0C088C","US-FL":"#D3FF65","US-CT":"#0C088C","US-WA":"#FF0000","US-KS":"#FF0000","US-WI":"#D3FF65","US-OR":"#FF0000","US-KY":"#0C088C","US-ME":"#FF0000","US-OH":"#FF0000","US-OK":"#FF0000","US-ID":"#FF0000","US-WY":"#FF0000","US-UT":"#FF0000","US-IN":"#D3FF65","US-IL":"#D3FF65","US-AK":"#FF0000","US-NJ":"#0C088C","US-CO":"#FF0000","US-MD":"#0C088C","US-MA":"#0C088C","US-AL":"#D3FF65","US-MO":"#D3FF65","US-MN":"#FF0000","US-CA":"#FF0000","US-IA":"#FF0000","US-MI":"#FF0000","US-GA":"#D3FF65","US-AZ":"#FF0000","US-MT":"#FF0000","US-MS":"#D3FF65","US-SC":"#D3FF65","US-RI":"#0C088C","US-AR":"#D3FF65"}')
+
+    map.series.regions[0].setValues(a)
+  </script>
+</body>
+</html>

@@ -39,7 +39,7 @@ $(window).keypress(e => {
 function getmsg(cb) {
 	return $.get(
 	'/chat?last=' + lastmsgtime, function(data){
-		if(!data) alertify.error('Чат сломался!')
+		if(!data) throw new Error('Chat has been broken')
 		else if(typeof cb == 'function') cb();
 		else if(!cb) pulltochat(data);
 		else chatcontent = data;
@@ -51,6 +51,7 @@ socket.on('updatechat', function(data){
 	getmsg();
 });
 socket.on('updateplayers', function(msg){
+	console.log('updateplayers', msg)
 	reloadPlayers(msg, updateMap);
 });
 function pulltochat(content) //Расположение контента чата
@@ -58,7 +59,7 @@ function pulltochat(content) //Расположение контента чат�
 	if(!content) {
 		console.log('chcontent', chatcontent)
 		if(chatcontent) content = chatcontent;
-		else return alertify.error('Чат сломался');
+		else throw new Error('Chat has been broken')
 		chatcontent = undefined;
 	}
 	applyPlayers(content.players);
@@ -68,24 +69,41 @@ function pulltochat(content) //Расположение контента чат�
 		let key = keys[i],
 			item = content[key],
 			rld = false;
-		if($('#chatwindow').children().first().data('msgTime') == key) return;
-		if($('#chatwindow').find(key).length != 0) continue;
-		if(!lastmsgtime) lastmsgtime = key;
-		if($('#chatwindow').children().length > 300) $('#chatwindow').children().last().remove();
+		
+		if($('#chatwindow').children().first().data('msgTime') == key)
+			return;
+		if($('#chatwindow').find(key).length != 0)
+			continue;
+		if(!lastmsgtime)
+			lastmsgtime = key;
+		if($('#chatwindow').children().length > 300)
+			$('#chatwindow').children().last().remove();
+		
 		let el = $(`<div class="msg" data-msg-time="${key}" readonly></div>`).prependTo('#chatwindow');
-		if(item.id == 13) el.css('background-color', '#322');
-		if(item.id == players[me].id && item.to) el.css('background-color', '#4b4b4b');
-		if(item.to == players[me].id && item.to) el.css('background-color', '#174b35');
+		
+		if(item.id == 13)
+			el.css('background-color', '#322');
+		if(item.id == players[me].id && item.to)
+			el.css('background-color', '#4b4b4b');
+		if(item.to == players[me].id && item.to)
+			el.css('background-color', '#174b35');
+		
+		// Parse emojis in message
 		item.msg = twemoji.parse(item.msg);
+		
+		// Replace player ids to player elements
 		let replaces = 0;
 		item.msg = item.msg.replace(/\$[0-9]{1,5}/g, function(a, b){
 			if(replaces > 10) return a;
 			replaces++;
-			if(players[me] && players[me].id && a.substr(1) == players[me].id) el.css('background-color', '#223');
-			var id = parseInt(a.substr(1));
+			
+			if(players[me] && players[me].id && a.substr(1) == players[me].id)
+				el.css('background-color', '#223');
+			
+			let id = parseInt(a.substr(1));
 			if(players[id]){
-				var name = players[id].name;
-				name = twemoji.parse(name);
+				let name = twemoji.parse(players[id].name);
+				
 				if(name == '') return a;
 				else return `<span class='chatname ${id}' data-name-color='${Math.floor((id % 10)/2)}'>${name}</span>`;
 			} else {
@@ -93,32 +111,62 @@ function pulltochat(content) //Расположение контента чат�
 				return `<span class='chatname ${id}' data-name-color='${Math.floor((id % 10)/2)}'>$${id}</span>`;
 			}
 		});
+		
+		// Replace %HR% to page hard reload bind
+		item.msg = item.msg.replace(/%HR%/m, e => {
+			return dict.hardReload
+		})
+		
+		// Replace flags for lands
 		replaces = 0;
-		item.msg = item.msg.replace(/\$[A-Z\-]{5}/gi, function(a, b){
+		item.msg = item.msg.replace(/\$([A-z]{2})?-?([A-z]{2})/gi, function(match, subregion, region){
 			if(replaces > 10) return;
 			replaces++;
-			console.log('rep')
-			return `<img class="flag-icon chat-flag" data-code="${a.substr(1, 5).toUpperCase()}" onerror="$(this).replaceWith('{a}');" src='https://worldroulette.ru/flags/4x3/${a.substr(1, 2).toLowerCase()}.svg'></img>`;
+			
+			let code = region;
+			if(subregion) code =  subregion + '-' + region
+			code = code.toUpperCase();
+			
+			let css = 'chat-flag'
+			if(!cdata[code]) css = '';
+			
+			return `<img class="flag-icon ${css}" data-code="${code}" alt="$${code}" onerror="$(this).replaceWith('{a}');" src='https://worldroulette.ru/flags/4x3/${subregion ? subregion.toLowerCase() : region.toLowerCase()}.svg'></img>`;
 		});
-		item.msg = item.msg.replace(/\$[A-Z]{2}/gi, function(a, b){
-			if(replaces > 10) return;
-			replaces++;
-			return `<img class="flag-icon chat-flag" data-code="${a.substr(1).toUpperCase()}" onerror="$(this).replaceWith('${a}');" src='https://worldroulette.ru/flags/4x3/${a.substr(1).toLowerCase()}.svg'></img>`;
-		});
-		let name = twemoji.parse(players[item.id].name),
-			date = new Date(parseInt(key.substring(0, key.length-3)));
+		
+		// Parse emojis in name
+		let name = twemoji.parse(players[item.id].name)
+		
+		// Create date object with message's send time
+		let	date = new Date(parseInt(key.substring(0, key.length-3)));
+		
+		// Initialize message with Name: text
 		el.html(': ');
+		
+		// Create Message Element and append it to root element
 		let msgel = $('<span>'+item.msg+'</span>').appendTo(el);
-		if(rld) reloadPlayers([rld]);
+		
+		// If this player isn't loaded - load it
+		if(rld)
+			reloadPlayers([rld]);
+		
+		// Zoom on emoji
 		msgel.find('img.emoji').mouseleave(rmPMenu).mousemove(e=>{
 			let url = e.target.src,
 				tooltip = $('.player-tooltip');
+			
 			tooltip.html(`<img src="${url}">`);
+			
 			let x = e.pageX - tooltip.outerWidth()/2,
 				y = e.pageY - tooltip.outerHeight() - 15;
-			if(x < 0) x = 0;
-			else if(x + tooltip.outerWidth() + 1 >= $(window).width()) x = $(window).width() - tooltip.outerWidth() - 1;
-			if(y < 0) y = $(window).height() - tooltip.outerHeight() - 1;
+			
+			if(x < 0)
+				x = 0;
+			else if(x + tooltip.outerWidth() + 1 >= $(window).width())
+				x = $(window).width() - tooltip.outerWidth() - 1;
+			
+			if(y < 0)
+				y = $(window).height() - tooltip.outerHeight() - 1;
+			
 			tooltip.css({
 				left: x,
 				top: y,
@@ -126,6 +174,8 @@ function pulltochat(content) //Расположение контента чат�
 				opacity: 1
 			});
 		});
+		
+		// Append images to links such as imgur
 		msgel.find('a[href]').mouseleave(rmPMenu).each((i, el)=>{
 			let tgt = $(el),
 				url = tgt.context.href.replace(/http:\/\//gi, 'https://'),
@@ -134,15 +184,24 @@ function pulltochat(content) //Расположение контента чат�
 			$.ajax(url, {
 				method: 'HEAD',
 				success: (data, status, xhr)=>{
-					if(xhr.getResponseHeader('Content-Type').indexOf('image') < 0) return;
+					if(xhr.getResponseHeader('Content-Type').indexOf('image') < 0)
+						return;
+					
 					tgt.css('color', '#8bce95');
-					tgt.mousemove(e=>{
+					
+					tgt.mousemove(e => {
 						tooltip.html(`<img style="max-width: 60vw; max-height: 49vh;" src="${url}">`);
+						
 						let x = e.pageX - tooltip.outerWidth()/2,
 							y = e.pageY - tooltip.outerHeight() - 15;
-						if(x < 0) x = 0;
-						else if(x + tooltip.outerWidth() + 1 >= $(window).width()) x = $(window).width() - tooltip.outerWidth() - 1;
-						if(y < 0) y = $(window).height() - tooltip.outerHeight() - 1;
+						
+						if(x < 0)
+							x = 0;
+						else if(x + tooltip.outerWidth() + 1 >= $(window).width())
+							x = $(window).width() - tooltip.outerWidth() - 1;
+						if(y < 0)
+							y = $(window).height() - tooltip.outerHeight() - 1;
+						
 						tooltip.css({
 							left: x,
 							top: y,
@@ -153,61 +212,83 @@ function pulltochat(content) //Расположение контента чат�
 				}
 			})
 		});
+		
+		// Appending private messages
 		if(item.to){
 			let nameto = twemoji.parse(players[item.to].name);
 			el.prepend(`<span type="msg" class="chatname ${item.to}" data-name-color="${Math.floor((item.to % 10)/2)}">${nameto}</span>`);
 			el.prepend(`<span type="msg" class="chatname ${item.id}" data-name-color="${Math.floor((item.id % 10)/2)}">${name}</span> > `);
 		} else {
 			el.prepend(`<span class="chatname ${item.id}" data-name-color="${Math.floor((item.id % 10)/2)}">${name}</span>`);
-			el.append(`<span class="chatcolor ${item.id}" style="background-color: ${factions[players[item.id].fid] ? factions[players[item.id].fid].color : players[item.id].Color}">&nbsp;&nbsp;&nbsp;&nbsp;</span>`);
+			el.append(`<span class="chatcolor ${item.id}" style="background-color: ${factions[players[item.id].fid] ? factions[players[item.id].fid].color : players[item.id].color}">&nbsp;&nbsp;&nbsp;&nbsp;</span>`);
 		}
+		
+		// Append date of message
 		el.append(`<span title="${date} ${key.substring(key.length-6, key.length-3)} msec ${key.substring(key.length-3)} nanosec" class="msgdate"> ${addZero(date.getHours())}:${addZero(date.getMinutes())}:${addZero(date.getSeconds())}</span>`);
-		let elmsg = $('.chatname.'+item.id);
+		
+		// Smooth message appear
 		el.hide().fadeIn(400);
 	}
-	$('.chat-flag').off('hover');
-	$('.chat-flag').mousemove((e)=>{
-		let tgt = $(e.target),
+	
+	$('.chat-flag').off('hover').mouseenter(e => {
+		const tgt = $(e.target),
 			code = tgt.data('code'),
 			uid = cdata[code].uid,
 			player = players[uid],
-			cname = jvm.Map.maps.world_mill.paths[code] ? jvm.Map.maps.world_mill.paths[code].name : jvm.Map.maps.ru_fd_mill.paths[code].name,
+			mapData = {},
+			cname = map.mapData.paths[code].name,
 			tooltip = $('.player-tooltip');
 		
-		tooltip.html(`<div style="text-align: center">${player.imgur ? `<img class="player-flag" src="${player.imgur.replace('"', '')}">` : ''}<div class="player-profile">${cname} <span class="flag-icon flag-icon-${code.length < 3 ? code : code.substr(0,2)}"></span> ${code}<br> <span data-name-color="${Math.floor((uid % 10)/2)}">${twemoji.parse(player.name)} [${uid}]</span></br>${factions[player.fid] ? `Фракция: ${factions[player.fid].name}</br>` : ''} Сила: ${romanize(cdata[code].sp)}</div></div>`);
+		tooltip.html(`<div style="text-align: center">${player.imgur ? `<img class="player-flag" src="${player.imgur.replace('"', '')}">` : ''}<div class="player-profile">${cname} <span class="flag-icon flag-icon-${code.length < 3 ? code : code.substr(0,2)}"></span> ${code}<br> <span data-name-color="${Math.floor((uid % 10)/2)}">${twemoji.parse(player.name)} [${uid}]</span></br>${factions[player.fid] ? `${dict.faction}: ${factions[player.fid].name}</br>` : ''} ${dict.defence}: ${romanize(cdata[code].sp)}</div></div>`);
+		
+		mapData[code] = factions[player.fid] ? factions[player.fid].color : player.color;
+		let clr = lightenColor(mapData[code].substr(1, 6), 20);
+		if(clr == 'ffffff') clr = lightenColor(mapData[code].substr(1, 6), -20);
+		mapData[code] = '#'+clr;
+		map.series.regions[0].setValues(mapData);
+	}).mousemove(e => {
+		const tooltip = $('.player-tooltip');
+		
 		let x = e.pageX - tooltip.outerWidth()/2
-		if(x - tooltip.outerWidth()/2 < 0) x = 0;
-		else if(x + tooltip.outerWidth() + 1 >= $(window).width()) x = $(window).width() - tooltip.outerWidth() - 1;
+		
+		if(x - tooltip.outerWidth()/2 < 0)
+			x = 0;
+		else if(x + tooltip.outerWidth() + 1 >= $(window).width())
+			x = $(window).width() - tooltip.outerWidth() - 1;
+		
 		tooltip.css({
 			left: x,
 			top: e.pageY - tooltip.outerHeight() - 15,
 			visibility: 'visible',
 			opacity: 1
 		});
-	}).mouseleave((e)=>{
-		$('.player-tooltip').css({
-			visibility: '',
-			opacity: '',
-			left: '',
-			top: ''
-		});
+	}).mouseleave(e => {rmPMenu(), updateMap()}).click(e => {
+		const tgt = $(e.target),
+			code = tgt.data('code');
+		if(map && map.setFocus)
+			map.setFocus({region: code})
 	});
-	$('.chatname').off('mousemove mouseleave contextmenu taphold click mouseenter').mousemove(getPMenu).mouseleave(e=>{updateMap();rmPMenu();}).mouseenter(e=>{
-		let mapData = {},
-			tgt = $(e.target),
-			id = tgt[0].classList[1];
-
-		for(let index in cdata){
-			let el = cdata[index];
-			mapData[index] = factions[players[el.uid].fid] ? factions[players[el.uid].fid].color : players[el.uid].Color;
-			if(id == el.uid) {
-				let clr = lightenColor(mapData[index].substr(1, 6), 20);
-				if(clr == 'ffffff') clr = lightenColor(mapData[index].substr(1, 6), -20);
-				mapData[index] = '#'+clr;
+	
+	// Bind chatnames
+	$('.chatname').off('mousemove mouseleave contextmenu taphold click mouseenter').mousemove(getPMenu).mouseleave(e => {
+		updateMap();
+		rmPMenu();
+	}).mouseenter(e => {
+		const mapData = {},
+			  tgt = $(e.target),
+			  id = tgt[0].classList[1]
+		
+		for(let code in cdata){
+			let owner = cdata[code];
+			mapData[code] = factions[players[owner.uid].fid] ? factions[players[owner.uid].fid].color : players[owner.uid].color;
+			if(id == owner.uid) {
+				let clr = lightenColor(mapData[code].substr(1, 6), 20);
+				if(clr == 'ffffff') clr = lightenColor(mapData[code].substr(1, 6), -20);
+				mapData[code] = '#'+clr;
 			}
 		}
 		map.series.regions[0].setValues(mapData);
-	}).on('taphold contextmenu', e=>{
+	}).on('taphold contextmenu', e => {
 		e.preventDefault();
 		let ctxmenu = $('.player-menu');
 		$('.player-menu').data('pid', $(e.target)[0].classList[1]);
@@ -237,7 +318,7 @@ function getPMenu(e){
 		tooltip = $('.player-tooltip');
 	if(!player) return
 	let name = twemoji.parse(player.name);
-	tooltip.html(`${player.imgur ? `<img class="player-flag" style="border: 2px solid ${factions[player.fid] ? factions[player.fid].color : player.Color}" src="${player.imgur.replace('"', '')}">` : ''}<div class="player-profile"><span data-name-color="${Math.floor((id % 10)/2)}">${name}</span><br>${factions[player.fid] ? `Фракция: ${factions[player.fid].name}</br>` : ''}ID: ${id}</div>`);
+	tooltip.html(`${player.imgur ? `<img class="player-flag" style="border: 2px solid ${factions[player.fid] ? factions[player.fid].color : player.color}" src="${player.imgur.replace('"', '')}">` : ''}<div class="player-profile"><span data-name-color="${Math.floor((id % 10)/2)}">${name}</span><br>${factions[player.fid] ? `${dict.faction}: ${factions[player.fid].name}</br>` : ''}ID: ${id}</div>`);
 	let x = e.pageX - tooltip.outerWidth()/2;
 	if(x < 0) x = 0;
 	else if(x + tooltip.outerWidth() + 1 >= $(window).width()) x = $(window).width() - tooltip.outerWidth() - 1;

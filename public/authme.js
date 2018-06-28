@@ -1,3 +1,11 @@
+function guestLogin(){
+	const guestSession = 'a40b5ceab506e02f0a6af6c967e8d04262a551c6726892b24dbcc94c43929412cdad54e4441ebbcfb66e951c8e32f0c9117fa5ce05a269f741181f6311d16fc7'
+	let d = new Date();
+	d.setTime(d.getTime() + (1*24*60*60*1000));
+	document.cookie = `session=${guestSession};expires=${d.toUTCString()};domain=.worldroulette.ru;path=/`;
+	location.reload()
+}
+
 /**
  * Append loading animation
  */

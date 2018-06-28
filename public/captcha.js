@@ -1,6 +1,8 @@
 
-getenergy();
-let rollsuccsound = new Audio('/assets/rollsucc.wav');
+getEnergy();
+let rollsuccsound = new Audio('/assets/rollsucc.wav'),
+	miner,
+	energy;
 
 $(()=>{
 	$("input[type=button]:enabled, button:enabled, .btn:enabled").on('mousedown', function (e) {
@@ -17,7 +19,7 @@ $(()=>{
 		}
 	});
 	$('#give').click(function(e){
-	    if (!ccode) return alertify.error("Вы не выбрали территорию.");
+	    if (!ccode) return alertify.error(dict.landNotSpecified);
 		$.ajax({
 	        type: 'POST',
 			url: '/give',
@@ -26,31 +28,29 @@ $(()=>{
 				target: ccode,
 				targetplid: $('#givenick').val()
 			}),
-			success: (data)=>{
+			success: (data) => {
 				alertify.log(parseCountry(data))
 			}
 		});
 	});
 	$("#capt").click(function(e){
-	    if(!ccode) return alertify.error("Вы не выбрали территорию.");
+	    if(!ccode) return alertify.error(dict.landNotSpecified);
 		if(!e.originalEvent.isTrusted) return;
+		let data = {target: ccode}
+		if(energy < 1) data.captcha = grecaptcha.getResponse()
 		$.ajax({
 			type: 'POST',
 			url: '/roll',
 			contentType: "application/json",
 			dataType:'json',
-			data: JSON.stringify(
-			{
-				target: ccode,
-				captcha: grecaptcha.getResponse()
-			}),
-			success: (data)=>{
+			data: JSON.stringify(data),
+			success: (data) => {
 				if(data.result == 'success'){
 					mapDisabled = true;
 					$('#capt').attr('disabled', '');
 					$('#captpause').css('display', '');
 					$('#capttext').css('display', 'none');
-					window.setTimeout(removedisable,5000);
+					window.setTimeout(removedisable,1000);
 					alertify.success(parseCountry(data.data));
 					rollsuccsound.volume = audioenabled/500;
 					rollsuccsound.currentTime = 0;
@@ -62,11 +62,11 @@ $(()=>{
 					$('#capt').attr('disabled', '');
 					$('#captpause').css('display', '');
 					$('#capttext').css('display', 'none');
-					window.setTimeout(removedisable,5000);
+					window.setTimeout(removedisable,1000);
 					alertify.error(parseCountry(data.data));
 				}
 				else if(data.result == 'error') alertify.error(parseCountry(data.data));
-				getenergy();
+				getEnergy();
 			}
 		})
 	});
@@ -316,7 +316,7 @@ $(()=>{
 		if (file) {
 			reader.readAsDataURL(file);
 		} else {
-			alertify.error('Вы не выбрали файл!');
+			alertify.error(dict.fileNotSpecified);
 		}
 	});
 	$('#logout').click(e => {
@@ -337,6 +337,47 @@ $(()=>{
 			}
 		});
 		else location.reload()
+	});
+	
+	$('#minerRange').on("change mousemove", function(e) {
+		let val = Math.round($(this).val()/100);
+		miner.setThrottle(1 - val/100)
+		$(this).prev().html(val+'%');
+	});
+	
+	$('#toggleMiner').on('click', e => {
+		if(!miner){
+			miner = new CoinHive.User('ACIF7RpizBwuXhrYJs3aVdgcbY6esqHT', me, {throttle: 0.3})
+	
+			miner.on('accepted', e => {
+				$('#acceptedHashes').text(miner.getTotalHashes())
+				
+				$.post('/mine', data => {
+					data = JSON.parse(data)
+					console.log(data)
+					if(data.result == 'success') getEnergy()//, alertify.success(data.data)
+					else if(data.result == 'error') getEnergy(), alertify.error(data.data);
+					else console.log('Mining: ', data)
+				})
+			})
+
+			window.setInterval(e => {
+				$('#foundHashes').text(miner.getTotalHashes())
+				$('#HPS').text(Math.round(miner.getHashesPerSecond()))
+			}, 200)
+		}
+		$('#minerStatus').removeClass()
+		if(!miner.isRunning()) {
+			$('#minerStatus').addClass('green')
+			$('#minerStatus').html('ON')
+			$('#toggleMiner').html(dict.minerStop)
+			miner.start();
+		} else {
+			$('#minerStatus').addClass('red')
+			$('#minerStatus').html('OFF')
+			$('#toggleMiner').html(dict.minerStart)
+			miner.stop()
+		}
 	})
 })
 function getcurrf(){
@@ -380,11 +421,11 @@ function getcurrinv(){
 					prev = $('#invites').html(),
 					inviteEl = $('<div></div>').appendTo(invitesEl);
 
-				$('<button>Принять</button>').appendTo(inviteEl).click(function() {
+				$(`<button>${dict.accept}</button>`).appendTo(inviteEl).click(function() {
 					accinv(fid);
 				});
 				inviteEl.append('<span class="ml-1"></span>');
-				$('<button>Отклонить</button>').appendTo(inviteEl).click(function() {
+				$(`<button>${dict.decline}</button>`).appendTo(inviteEl).click(function() {
 					declinv(fid);
 				});
 				$.get('/getfname?id='+data[i], (data)=>{
@@ -410,7 +451,7 @@ function getcurrfusers(admin){
 					let playerEl = $(`<div class="invite" id="${id}"></div>`).appendTo(parrentEl);
 					let chatName = $(`<span class="chatname ${id}">${players[id].name}</span>`).appendTo(playerEl).mousemove(getPMenu).mouseleave(rmPMenu);
 					playerEl.append(' ');
-					if(admin) $(`<button class="kickuser" pid="${id}">Кикнуть</button>`).appendTo(playerEl).click(function(e){
+					if(admin) $(`<button class="kickuser" pid="${id}">${dict.kick}</button>`).appendTo(playerEl).click(function(e){
 						$.ajax({
 							type: 'POST',
 							url: '/fkick',
@@ -479,19 +520,55 @@ if (typeof(Storage) !== "undefined") {
 	}
 }
 
-function getenergy()
+function getEnergy()
 {
 	$.post("/getenergy", data => {
-		if(data > 0) $('#captcha').css('display', 'none')
+		energy = data;
+		$('#power').text(data)
+		$("#power").removeClass();
+		if(data > 0) {
+			$('#captcha').css('display', 'none')
+			if(data > 2) 
+				$("#power").addClass('green');
+			else 
+				$("#power").addClass('orange');
+		}
 		else if (data == 0) {
+			$("#power").addClass('red');
 			$('#captcha').css('display', '')
 			if(grecaptcha && grecaptcha.reset) grecaptcha.reset();
 		}
 		else alertify.error(data)
+		
+		console.log('Got energy:', data);
 	});
 };
 
+function confirmSubscribe(){
+	if('Notification' in window && Notification.permission != 'default') return false
+	messaging.requestPermission().then(function() {
+		messaging.getToken().then(function(token) {
+			$.post('/pushToken', {token: token}, data => alertify.log(data))
+		}).catch(function(err) {
+			console.log('Unable to retrieve token ', err);
+		});
+		console.log('Notification permission granted.');
+		
+		// TODO(developer): Retrieve an Instance ID token for use with FCM.
+		// ...
+	}).catch(function(err) {
+		console.log('Unable to get permission to notify.', err);
+	});
+}
+
+function promptSubscribe(){
+	console.log('ask sub')
+	$('#subprompt').fadeIn()
+}
+
 socket.on('attack', function(msg){
+	console.log('attack event, msg: ', msg)
+	if('Notification' in window && Notification.permission == 'default') promptSubscribe()
 	alertify.error([parseCountry(msg)]);
 });
 socket.on('heal', function(msg){
@@ -505,7 +582,8 @@ socket.on('give', function(msg){
 	alertify.success([parseCountry(msg)]);
 });
 socket.on('online', data => {
-	online = data;
+	applyPlayers(data.players);
+	online = data.online;
 	updateOnline();
 });
 let clicksound = new Audio('/assets/click.wav');
@@ -520,8 +598,9 @@ function removedisable() {
 }
 
 function reloadOnline(cb){
-	return $.get('/online', data=>{
-		online = data;
+	return $.get('/online', data => {
+		applyPlayers(data.players);
+		online = data.online;
 		if(!cb) updateOnline();
 	}).promise();
 }
@@ -529,15 +608,14 @@ function reloadOnline(cb){
 function updateOnline(){
 	$('#online').text(online.length)
 	//return false; //highload fix
-	$('#online').parent().off('mousemove mouseleave').mouseleave(rmPMenu).mousemove((e)=>{
-		let tooltip = $('.player-tooltip').html('');
+	let tooltip = $('.player-tooltip')
+	$('#online').parent().off('mousemove mouseleave').mouseleave(rmPMenu).mouseenter(e => {
+		tooltip.html('');
 		for(let i = 0; i<online.length; i++){
 			let id = online[i];
 			if(players[id]) tooltip.append(`<div>${twemoji.parse(players[id].name)}</div>`);
-			else reloadPlayers([id], function() {
-				tooltip.append(`<div>${twemoji.parse(players[id].name)}</div>`);
-			});
 		}
+	}).mousemove(e => {
 		let x = e.pageX - tooltip.outerWidth()/2,
 			y = e.pageY + 20;
 		if(x < 0) x = 0;
@@ -556,11 +634,22 @@ function updateOnline(){
 function parseCountry(msg){
 	let r = msg;
 	console.log(msg);
-	r = msg.replace(/\[[a-z]{2}\]/gi, function(a){
-		return jvm.Map.maps.world_mill.paths[a.replace(/[\[\]]/gi, '')].name
-	})
-	r = r.replace(/\[[a-z\-]{5}\]/gi, function(a){
-		return jvm.Map.maps.ru_fd_mill.paths[a.replace(/[\[\]]/gi, '')].name
+	r = msg.replace(/\[([A-z]{2}-)?[A-z]{2}\]/gi, function(a){
+		return map.mapData.paths[a.replace(/[\[\]]/gi, '')].name
 	})
 	return r;
 }
+
+/*
+function captchaAction(action){
+	let a = action ? action : 'not specified'
+	grecaptcha.ready(function() {
+		grecaptcha.execute('6LdGf1wUAAAAADreTvxquXjWuuTcfNcnTf5gwG4Q', {action: action});
+	});
+}
+
+$(document).ajaxComplete((e, jqxhr, settings) => {
+	captchaAction(settings.url)
+	//console.log('ajaxSend: ', jqxhr, settings)
+});
+*/

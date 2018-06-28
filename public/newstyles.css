@@ -4,17 +4,11 @@
 
 @media only screen and (min-width: 1199px) {
 	.menu input[type="checkbox"] {
-		zoom: 200%;
-		width: 1vmin;
-		height: 1vmin;
+		width: .7em;
+		height: .7em;
 	}
 	.btn-big *, .btn-big {
 		font-size: 1.3em;
-	}
-
-	.menu *{
-		font-size: 3vmin;
-		vertical-align: middle;
 	}
 }
 
@@ -34,7 +28,7 @@ searchtext {
     width: 50vw;
     margin: auto;
     top: 10vh;
-    padding: .2vmin .1vmin;
+    padding: .2em .1em;
     border: 1px solid #525252;
     right: 0;
     left: 0;
@@ -54,7 +48,7 @@ body {
 	margin: 0;
 	font-family: 'Roboto', sans-serif;
 	color: #aaa;
-	font-size: 1.7vmin;
+	font-size: 1vw;
     background-color: #373a3c;
 	overflow-x: hidden;
 }
@@ -98,7 +92,7 @@ h3{
 }
 
 input[type=button], button, .btn{
-    margin: .2vmin 0;
+    margin: .15em 0;
     cursor: pointer;
     border: 0px solid #525252;
     background-color: #222;
@@ -113,7 +107,7 @@ input[type=button], button, .btn{
 }
 
 input[type=text], input[type=password] {
-    margin: .2vmin 0;
+    margin: .15em 0;
     padding: 2px;
     border: 0px solid #525252;
     background-color: #222;
@@ -342,7 +336,7 @@ input[type="range"]::-moz-range-thumb {
 	width: 5em;
 	height: 5em;
 	box-sizing: border-box;
-	margin-right: .5vmin;
+	margin-right: .1em;
 	vertical-align: top
 }
 
@@ -388,7 +382,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .well.header > * {
-    margin: 0 .5vmin;
+    margin: 0 .1em;
 }
 
 .well.controls {
@@ -557,7 +551,6 @@ hr, .well.header > hr{
 
 .network {
 	color: #636c72;
-    margin: .2vmin 0;
     padding: .5rem 0;
     display: block;
     text-align: right;
@@ -567,6 +560,32 @@ hr, .well.header > hr{
 
 .flex-break {
 	flex-basis: 100%;
+}
+
+.grecaptcha-badge {
+	z-index: 999;
+}
+
+.privacy-policy {
+	z-index: 999;
+	position: absolute;
+	font-size: .5em;
+}
+
+.jvectormap-goback {
+	display: none!important;
+}
+
+.green {
+	color: green;
+}
+
+.red {
+	color: red;
+}
+
+.orange {
+	color: orangered;
 }
 
 @media only screen and (max-width: 1199px) and (max-resolution: 100dpi){
@@ -594,23 +613,27 @@ hr, .well.header > hr{
 	}
 
 	input[type="checkbox"] {
-		font-size: 3vmin;
+		font-size: 1em;
 	}
 }
 
 @media (min-resolution: 100dpi) {
-	* {
-		font-size: 6vmin;
+	body {
+		font-size: 3.5rem;
 		vertical-align: middle;
 	}
-	.msg *{
-		font-size: 6vmin;
+	.msg {
+		font-size: 2em;
 	}
 	#map {
 		height: 70%;
 	}
 	input#newflag {
 		max-width: 70%;
+	}
+	input[type="checkbox"] {
+		width: 3em;
+		height: 3em;
 	}
 }
 
